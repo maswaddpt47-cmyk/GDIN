@@ -165,13 +165,36 @@ canvas{display:block;width:100%!important;max-height:240px}
   .kpi-value{font-size:22px}
   .data-source{display:none}
 }
+/* @media print moved above */
+
+
+/* ── Mode présentation ── */
+.btn-pres{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);color:var(--purple);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:500;transition:all .15s}
+.btn-pres:hover{background:rgba(139,92,246,.25);color:#fff}
+.btn-pres.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+body.pres-mode .container{max-width:100%;padding:10px 16px}
+body.pres-mode header{background:var(--bg);border-bottom:1px solid var(--border2)}
+body.pres-mode .kpi{border-width:1px}
+body.pres-mode .kpi-value{font-size:36px}
+body.pres-mode .kpi-label{font-size:12px}
+body.pres-mode canvas{max-height:320px!important}
+body.pres-mode .card-title{font-size:11px;margin-bottom:16px}
+body.pres-mode .tabs{font-size:13px}
+body.pres-mode .tab{padding:10px 18px;font-size:13px}
+body.pres-mode .bar-item .bi-name{font-size:13px}
+body.pres-mode .bar-item .bi-val{font-size:13px}
+body.pres-mode .tbl{font-size:13px}
+body.pres-mode .tbl th{font-size:11px}
+/* ── Print : mode sombre conservé, graphes visibles ── */
 @media print{
-  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  header,.tabs,.btn-print,.btn-sm,.type-filter,.date-range,.toggle-group,.year-chips,.frow,select{display:none!important}
-  body{background:#fff!important;color:#000!important}
-  .card,.kpi{background:#fff!important;border:1px solid #ccc!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  header .header-controls,header .tabs-wrap,.btn-print,.btn-csv,.btn-pres,.btn-filter-toggle,.btn-sm,.type-filter,.date-range,.toggle-group,.year-chips,.frow,select,.tabs-nav{display:none!important}
+  body{background:var(--bg)!important;color:var(--text)!important;-webkit-print-color-adjust:exact!important}
+  .card,.kpi{background:var(--s1)!important;border:1px solid var(--border)!important;break-inside:avoid}
   .print-hide{display:none!important}
-  canvas{max-height:180px!important}
+  canvas{max-height:220px!important}
+  .container{padding:8px 12px!important}
+  @page{margin:1cm;size:A4 landscape}
 }
 
 /* ── Mobile filter drawer ── */
@@ -241,6 +264,8 @@ canvas{display:block;width:100%!important;max-height:240px}
       <button class="btn-sm" onclick="resetDates()">Tout</button>
     </div>
     <span class="filter-pill" id="fpill">Filtre actif</span>
+    <button class="btn-csv" onclick="exportCSV()" title="Exporter les données filtrées en CSV">↓ CSV</button>
+    <button class="btn-pres" id="btn-pres" onclick="togglePresentation()" title="Mode présentation plein écran">⊞ Présentation</button>
     <button class="btn-filter-toggle" id="btn-filter-toggle" onclick="openFilterDrawer()" title="Filtres">⚙ Filtres</button>
     <span style="font-size:10px;color:var(--muted)">Lot-et-Garonne · GDIN</span>
   </div>
@@ -293,9 +318,6 @@ canvas{display:block;width:100%!important;max-height:240px}
 
   <!-- VUE GLOBALE -->
   <div id="panel-global" class="panel active">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-    <button class="btn-csv" onclick="exportCSV()">↓ CSV</button>
-  </div>
   <div id="kpi-global" class="g5"></div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Thématiques</div><canvas id="ch-thema"></canvas></div>
@@ -1474,6 +1496,19 @@ function exportCSV(){
   document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},500);
 }
+
+// ── MODE PRÉSENTATION ──
+let presMode=false;
+function togglePresentation(){
+  presMode=!presMode;
+  document.body.classList.toggle('pres-mode',presMode);
+  const btn=document.getElementById('btn-pres');
+  if(btn){btn.textContent=presMode?'✕ Quitter':'⊞ Présentation';btn.classList.toggle('active',presMode);}
+  // Resize des charts après toggle pour qu'ils s'adaptent
+  setTimeout(()=>{Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}});},200);
+}
+// Echap pour quitter le mode présentation
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&presMode)togglePresentation();});
 
 // PRINT
 function printRapport(){
