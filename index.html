@@ -320,7 +320,7 @@ canvas{display:block;width:100%!important;max-height:240px}
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--purple)"></span>Types d'action</div><canvas id="ch-conum-types"></canvas></div>
     </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Récap tous conseillers</div>
-      <table class="tbl"><thead><tr><th>Conseiller</th><th>Accompagnements</th><th>Taux complétion</th><th>Accompagnements / Prises de contact</th><th>Thématique principale</th></tr></thead>
+      <table class="tbl"><thead><tr><th>Conseiller</th><th>Accompagnements</th><th>Taux complétion</th><th>Thématique principale</th></tr></thead>
       <tbody id="tbl-conum-all"></tbody></table>
     </div>
   </div>
@@ -534,122 +534,46 @@ const PALETTE=['#3b82f6','#f97316','#10b981','#8b5cf6','#ef4444','#22d3ee','#eab
 const CMS_MAIN=['Centre Médico-Social Agen Montanou','Centre Médico-Social Agen Louis Vivent','Centre Médico-Social de Tonneins','Centre Médico-Social de Villeneuve/Lot','Centre Médico-Social de Fumel','Centre Médico-Social de Marmande','Centre Médico-Social de Nérac','Centre Médico-Social Agen Tapie'];
 const MONTH_FR=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 const TYPE_KEYS=['Accompagnement','Prise de contact','Orientation vers un tiers'];
-// Full CMS normalisation — covers both GDIN and Etat_Actions lieux
+// CMS_MAP_RAW — liste blanche stricte : seules les variantes connues → nom canonique
+// Toute valeur absente retourne null (ignorée silencieusement à l'import)
 const CMS_MAP_RAW={
-  'FRANCE SERVICES DU CONFLUENT':null,
-  'FRANCE services du Confluent':null,
-  'FRANCE  services du confluent':null,
-  'France Service du confluent':null,
-  'France Services Confluent':null,
-  'CCAS Aiguillon ':null,
-  'CCAS AIGUILLON':null,
-  'CCAS FUMEL':null,
-  'France Travail Aiguillon':null,
-  'ASE - CMS Villeneuve':null,
   'Centre Médico-Social de Villeneuve/Lot':'CMS Villeneuve/Lot',
-  'Centre Médico-Social Agen Montanou':'CMS Agen Montanou',
-  'Centre Médico-Social de Marmande':'CMS Marmande',
-  'Centre Médico-Social de Fumel':'CMS Fumel',
+  'CMS Villeneuve-sur-Lot':                'CMS Villeneuve/Lot',
+  'CMS Villeneuve':                         'CMS Villeneuve/Lot',
+  'CMS de Villeneuve-sur-Lot':             'CMS Villeneuve/Lot',
+  'CMS Villeneuve/Lot':                     'CMS Villeneuve/Lot',
+  'Centre Médico-Social Agen Montanou':    'CMS Agen Montanou',
+  'CMS Montanou':                           'CMS Agen Montanou',
+  'Centre Médico-Social de Marmande':      'CMS Marmande',
+  'Centre Médico-Social de Fumel':         'CMS Fumel',
+  'CMS de Fumel':                           'CMS Fumel',
   'Centre Médico-Social Agen Louis Vivent':'CMS Agen Louis Vivent',
-  'Centre Médico-Social Agen Tapie':'CMS Agen Tapie',
-  'Centre Médico-Social de Nérac':'CMS Nérac',
-  'Centre Médico-Social de Tonneins':'CMS Tonneins',
-  'Centre Médico-Social de Casteljaloux':'CMS Casteljaloux',
-  'Centre Médico-Social de Miramont de Guy.':null,
-  'CMS Villeneuve-sur-Lot':'CMS Villeneuve/Lot',
-  'CMS Villeneuve':'CMS Villeneuve/Lot',
-  'CMS de Villeneuve-sur-Lot':'CMS Villeneuve/Lot',
-  'CMS Villeneuve/Lot':'CMS Villeneuve/Lot',
-  'CMS de Fumel':'CMS Fumel',
-  'CMS Tonneins':'CMS Tonneins',
-  'CMS Nérac':'CMS Nérac',
-  'CMS Louis Vivent':'CMS Agen Louis Vivent',
-  'CMS Montanou':'CMS Agen Montanou',
+  'CMS Louis Vivent':                       'CMS Agen Louis Vivent',
+  'Centre Médico-Social Agen Tapie':       'CMS Agen Tapie',
+  'Centre Médico-Social de Nérac':         'CMS Nérac',
+  'CMS Nérac':                              'CMS Nérac',
+  'Centre Médico-Social de Tonneins':      'CMS Tonneins',
+  'CMS Tonneins':                           'CMS Tonneins',
   'Permanence - Centre Médico-Social Antenne AIGUILLO':'CMS Antenne Aiguillon',
-  'Permanence - Antenne du CMS de Marmande (ST-PARDOU':'CMS Marmande (St-Pardoux)',
-  'Permanence - Centre médico-social de Casteljaloux':'CMS Casteljaloux',
-  'Permanence - Centre social de VILLEREAL':null,
-  'Permanence - Centre social de VILLEREAL (ECLATS)':null,
-  'CMS VILLEREAL (ECLATS)':null,
-  'Permanence - Centre Social de CASTILLONNES':'Permanence Castillonnès',
-  'Permanence - Locaux de ECLATS':null,
-  'DSIAN':null,
-  'DSIAN ( accompagnement à distance)':null,
-  'Permanence - Médiathèque Départementale':null,
-  'Médiathèque Départementale':null,
-  'MEDIATHEQUE ASTAFFORT':null,
-  'Médiathèque Astaffort':null,
-  'Médiathèque 12 Rue A. Routier 47220 Astaffort':null,
-  'Médiathèque 12 Rue André Routier, 47220 Astaffort':null,
-  'Médiathèque Casseneuil':null,
-  'Médiathèque de Pont-du-Casse':null,
-  'Médiathèque de Foulayronnes':null,
-  'Mission Locale Pays Villeneuvois - VILLENEUVE-SUR-':null,
-  'France Services Aiguillon':null,
-  'France service Aiguillon':null,
-  'Permanence - France Travail AIGUILLON':null,
-  'Permanence - Locaux de ECLATS':null,
-  'Association GEM, 36 avenue de Villeneuve MONSEMPRO':null,
-  'Association ABRIS':null,
-  'ABRIS':null,
-  'EVS de Lavardac':null,
-  'Permanence - Maison des Associations de LAVARDAC':null,
-  'La Sauvegarde 117 avenue Jean Jaurès 47000 AGEN':null,
-  'Campus Numérique 47 - Agen':null,
-  'Association Service Environnement Tonneins':null,
-  'Distance':null,
-  'DISTANCE':null,
-  'A distance':null,
-  'A Distance':null,
-  'Accompagnement à distance':null,
-  'Par téléphone au 0670002392':null,
-  'VAD':null,
-  'VAD TONNEINS':null,
-  'VAD Tonneins':null,
-  'VàD Montayral':null,
-  'Visite à domicile':null,
-  'Visite à Domicile':null,
-  'Visite à domicile - Allons':null,
-  'Domicile':null,
-  'domicile':null,
-  'DOMICILE':null,
-  'Lalandusse':null,
-  'Le Fréchou':null,
-  'Sainte Livrade sur Lot':null,
-  'Tonneins':null,
-  'Fumel':null,
-  'Monsempron':null,
-  'Saint-Pardoux':null,
-  'Montayral':null,
-  'Allons':null,
-  'Permanence - Mairie de CANCON':null,
-  'Permanence - Maison pour tous':null,
-  'Maison des familles - 461 Ch. du Vieux Cussac':null,
-  'Mairie de COURBIAC - Le Bourg 47370':null,
-  'Hôtel du Département':null,
-  'Cité scolaire de FUMEL':null,
-  'test':null,
-  'tyo':null,
-  'flff':null,
-  'C':null
+  'Permanence - Antenne du CMS de Marmande (ST-PARDOU)':'CMS Marmande (St-Pardoux)',
+  'Permanence - Centre médico-social de Casteljaloux': 'CMS Casteljaloux',
+  'Centre Médico-Social de Casteljaloux':              'CMS Casteljaloux',
+  'Permanence - Centre Social de CASTILLONNES':        'Permanence Castillonnès',
 };
-// Build CMS_MAP as lowercase-normalised lookup for robust matching
-function normKey(s){return String(s).toLowerCase().replace(/\s+/g,' ').trim();}
+// KEEP_CMS dérivée automatiquement — une seule source de vérité
+const KEEP_CMS=new Set(Object.values(CMS_MAP_RAW));
+// Lookup accent-insensitive + lowercase
+function normKey(s){
+  return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/\s+/g,' ').trim();
+}
 const CMS_MAP={};
 Object.entries(CMS_MAP_RAW).forEach(([k,v])=>{CMS_MAP[k]=v;CMS_MAP[normKey(k)]=v;});
-const KEEP_CMS=new Set([
-  'CMS Villeneuve/Lot','CMS Agen Montanou','CMS Marmande','CMS Fumel',
-  'CMS Agen Louis Vivent','CMS Agen Tapie','CMS Nérac','CMS Tonneins',
-  'CMS Antenne Aiguillon','CMS Marmande (St-Pardoux)','CMS Casteljaloux',
-  'Permanence Castillonnès'
-]);
+// normCms — pas de fallback : absent du map = null
 function normCms(lieu){
   if(!lieu)return null;
   const s=String(lieu).trim();
-  const mapped=CMS_MAP[s]||CMS_MAP[normKey(s)];
-  const result=mapped!==undefined?mapped:s;
-  // Return null for anything not in the keep list
-  return KEEP_CMS.has(result)?result:null;
+  return CMS_MAP[s]??CMS_MAP[normKey(s)]??null;
 }
 
 let charts={}, evolModeVal='total', nnModeVal=false;
@@ -676,8 +600,9 @@ function parseXlsText(text){
     if(!cms||cms==='Inconnu')continue;
     const themas=(cols[12]||'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
-    for(const p of (cols[6]||'').split(';')){const t=p.trim();if(t&&t!=='Reservation'&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
-    records.push({date_demande:dd,date_action:da||null,conum:(cols[11]||'').trim(),cms,commune:(cols[3]||'').trim(),themas,type_action:types,orienteur:(cols[9]||'').trim(),motif:(cols[4]||'').slice(0,120).trim(),benef_connu:(cols[17]||'').trim().toLowerCase()==='oui'});
+    const EXCL=new Set(['Reservation','Ateliers']);
+    for(const p of (cols[6]||'').split(';')){const t=p.trim();if(t&&!EXCL.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
+    records.push({date_demande:dd,date_action:da||null,conum:(cols[11]||'').trim(),cms,commune:(cols[3]||'').trim(),themas,type_action:types,orienteur:(cols[9]||'').trim(),motif:(cols[4]||'').slice(0,120).trim(),benef_connu:(cols[17]||'').trim().toLowerCase()==='oui',urgence:(cols[18]||'').trim().toLowerCase()==='oui'});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide. Vérifiez le format.');
   return{records,warnings};
@@ -685,7 +610,18 @@ function parseXlsText(text){
 
 // LOCALSTORAGE
 const LS_KEY='gdin_data_v2', LS_META='gdin_meta_v2';
-function saveToStorage(records,meta){try{localStorage.setItem(LS_KEY,JSON.stringify(records));localStorage.setItem(LS_META,JSON.stringify(meta));return true;}catch(e){return false;}}
+function saveToStorage(records,meta){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify(records));
+    localStorage.setItem(LS_META,JSON.stringify(meta));
+    return true;
+  }catch(e){
+    if(e.name==='QuotaExceededError'||e.code===22){
+      console.warn('[GDIN] localStorage quota dépassé — session sans persistance');
+    }
+    return false;
+  }
+}
 function loadFromStorage(){try{const r=localStorage.getItem(LS_KEY),m=localStorage.getItem(LS_META);if(r&&m)return{records:JSON.parse(r),meta:JSON.parse(m)};}catch(e){}return null;}
 function clearStorage(){localStorage.removeItem(LS_KEY);localStorage.removeItem(LS_META);}
 
@@ -694,8 +630,8 @@ function initData(){
   // Also filter Reservation from embedded data at init
   const stored=loadFromStorage();
   if(stored){DATA=stored.records;dataSource='imported';importMeta=stored.meta;updateSourceBadge(true,stored.meta);}
-  else{DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>t!=='Reservation')}))
-    .filter(r=>r.cms!==null&&KEEP_CMS.has(r.cms));dataSource='embedded';updateSourceBadge(false,null);}
+  else{const EXCL=new Set(['Reservation','Ateliers']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL.has(t))}))
+    .filter(r=>r.cms!==null);dataSource='embedded';updateSourceBadge(false,null);}
   updateAllYears();updateDateRange();updateCurrentSourceInfo();
 }
 function updateAllYears(){
@@ -733,11 +669,12 @@ function resetDates(){updateDateRange();document.getElementById('typeFilter').va
 function onYearFilterChange(){
   const yr=document.getElementById('yearFilter').value;
   if(yr){
-    // Set date range to full year
     document.getElementById('dFrom').value=yr+'-01-01';
     document.getElementById('dTo').value=yr+'-12-31';
+    activeYears=new Set([yr]);
   } else {
     updateDateRange();
+    activeYears=new Set(ALL_YEARS);
   }
   refreshAll();
 }
@@ -1100,11 +1037,9 @@ function renderConum(){
   allConums.forEach(cn=>{
     const d=allData.filter(r=>r.conum===cn);if(!d.length)return;
     const noA2=d.filter(r=>!r.date_action).length;
-    const accComp=d.filter(r=>r.type_action&&r.type_action.includes('Accompagnement')).length;
-    const pdc=d.filter(r=>r.type_action&&r.type_action.includes('Prise de contact')).length;
     const topT=Object.keys(countThemas(d))[0]||'—';
     const hl=cn===conum?'background:var(--s3)':'';
-    rows+=`<tr style="${hl}"><td class="${conumClass(cn)}" style="font-weight:600">${cn}</td><td class="mono">${d.length}</td><td class="mono">${pct(d.length-noA2,d.length)}%</td><td class="mono">${accComp} acc. / ${pdc} p.c.</td><td><span class="badge badge-blue">${topT}</span></td></tr>`;
+    rows+=`<tr style="${hl}"><td class="${conumClass(cn)}" style="font-weight:600">${cn}</td><td class="mono">${d.length}</td><td class="mono">${pct(d.length-noA2,d.length)}%</td><td><span class="badge badge-blue">${topT}</span></td></tr>`;
   });
   document.getElementById('tbl-conum-all').innerHTML=rows;
 }
@@ -1265,9 +1200,10 @@ function parseXlsxBinary(arraybuffer){
     if(!cms||cms==='Inconnu')continue;
     const themas=String(cols[12]||'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
+    const EXCL_BIN=new Set(['Reservation','Ateliers']);
     for(const p of String(cols[6]||'').split(';')){
       const t=p.trim();
-      if(t&&t!=='Reservation'&&!seen.has(t)){seen.add(t);types.push(t);}
+      if(t&&!EXCL_BIN.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}
       if(types.length>=4)break;
     }
     records.push({
@@ -1278,7 +1214,8 @@ function parseXlsxBinary(arraybuffer){
       themas,type_action:types,
       orienteur:String(cols[9]||'').trim(),
       motif:String(cols[4]||'').slice(0,120).trim(),
-      benef_connu:String(cols[16]||'').trim().toLowerCase()==='oui'
+      benef_connu:String(cols[17]||'').trim().toLowerCase()==='oui',
+      urgence:String(cols[18]||'').trim().toLowerCase()==='oui'
     });
   }
   if(!records.length)throw new Error('Aucun enregistrement valide');
@@ -1359,11 +1296,12 @@ function showPreview(pd){
 function confirmImport(){
   if(!pendingData)return;
   const{records,filename}=pendingData;
-  // Merge: deduplicate by composite key (date_demande + conum + orienteur + motif[:30])
+  // Base = données importées uniquement (pas les embedded) pour éviter les doublons inter-sessions
+  const base=dataSource==='imported'?DATA:[];
   function makeKey(r){return `${r.date_demande}|${r.conum}|${r.orienteur}|${(r.motif||'').slice(0,30)}`;}
-  const existingKeys=new Set(DATA.map(makeKey));
+  const existingKeys=new Set(base.map(makeKey));
   const newRecords=records.filter(r=>!existingKeys.has(makeKey(r)));
-  const merged=[...DATA,...newRecords];
+  const merged=[...base,...newRecords];
   DATA=merged;dataSource='imported';
   const years=[...new Set(records.map(r=>r.date_demande.slice(0,4)))].sort();
   importMeta={filename,count:DATA.length,years,date:new Date().toLocaleDateString('fr-FR')};
@@ -1378,8 +1316,8 @@ function confirmImport(){
 function cancelImport(){pendingData=null;['import-preview','import-error','parse-progress-box'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('file-input').value='';}
 function resetToEmbedded(){
   if(!confirm('Supprimer les données importées et revenir aux données intégrées ?'))return;
-  clearStorage();DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>t!=='Reservation')}))
-    .filter(r=>r.cms!==null&&KEEP_CMS.has(r.cms));
+  clearStorage();const EXCL_RST=new Set(['Reservation','Ateliers']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL_RST.has(t))}))
+    .filter(r=>r.cms!==null);
   dataSource='embedded';importMeta=null;updateSourceBadge(false,null);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
 }
