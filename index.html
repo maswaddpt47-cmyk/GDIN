@@ -1462,12 +1462,9 @@ function exportCSV(){
     (r.themas||[]).join('/'),
     (r.type_action||[]).join(';'),
     r.orienteur||'',
-    (r.motif||'').replace(/;/g,',').replace(/
-/g,' ')
+    (r.motif||'').replace(/;/g,',').replace(/\n/g,' ')
   ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';'));
-  const csv='﻿'+header+'
-'+rows.join('
-');
+  const csv='\uFEFF'+header+'\n'+rows.join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1983,7 +1980,7 @@ function buildAnomalyReport(records, rawLines){
   const items=[];
   // 1. Lignes sans date action
   const noDate=records.filter(r=>!r.date_action).length;
-  if(noDate>0)items.push({label:'Dossiers sans date d'action renseignée',val:noDate,color:'var(--yellow)'});
+  if(noDate>0)items.push({label:"Dossiers sans date d'action renseignée",val:noDate,color:'var(--yellow)'});
   // 2. Orienteurs vides
   const noOri=records.filter(r=>!r.orienteur||r.orienteur==='?').length;
   if(noOri>0)items.push({label:'Dossiers sans orienteur identifié',val:noOri,color:'var(--muted)'});
