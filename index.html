@@ -16,7 +16,7 @@
   --green:#10b981;--purple:#8b5cf6;--red:#ef4444;--yellow:#eab308;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;min-height:100vh;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;min-height:100vh;overflow-x:clip}
 header{background:var(--s1);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:8px;flex-wrap:wrap}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-badge{background:var(--blue);color:#fff;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;padding:3px 8px;border-radius:4px;letter-spacing:.5px}
@@ -40,8 +40,13 @@ header{background:var(--s1);border-bottom:1px solid var(--border);padding:8px 14
 select{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:12px;cursor:pointer;outline:none}
 select:focus{border-color:var(--blue)}
 .container{max-width:1560px;margin:0 auto;padding:18px 24px}
-.tabs{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs-wrap{position:relative;margin-bottom:20px;display:flex;align-items:flex-end;gap:4px}
+.tabs-nav{display:none;background:var(--s2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 8px;font-size:14px;cursor:pointer;line-height:1;flex-shrink:0;margin-bottom:1px}
+.tabs-nav:hover{color:var(--text)}
+.tabs-nav:disabled{opacity:.25;cursor:default}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex:1}
 .tabs::-webkit-scrollbar{display:none}
+@media(max-width:700px){.tabs-nav{display:inline-block}}
 .tab{font-size:12px;font-weight:500;padding:8px 14px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text)}.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
 .tab.import-tab{color:var(--green)}.tab.import-tab.active{color:var(--green);border-bottom-color:var(--green)}
@@ -205,7 +210,9 @@ canvas{display:block;width:100%!important;max-height:240px}
 </header>
 
 <div class="container">
-  <div class="tabs">
+  <div class="tabs-wrap">
+    <button class="tabs-nav" id="tabs-prev" onclick="scrollTabs(-1)" disabled>‹</button>
+    <div class="tabs" id="tabs-bar" onscroll="checkTabsFade()">
     <button class="tab active" onclick="switchTab('global',this)">Vue globale</button>
     <button class="tab" onclick="switchTab('evolution',this)">📈 Évolution</button>
     <button class="tab" onclick="switchTab('par-cms',this)">Par CMS</button>
@@ -215,6 +222,8 @@ canvas{display:block;width:100%!important;max-height:240px}
     <button class="tab import-tab" onclick="switchTab('import',this)">⬆ Import données</button>
     <button class="tab import-tab" onclick="switchTab('actions',this)" style="color:var(--orange)">⬆ Import états actions</button>
   </div>
+    <button class="tabs-nav" id="tabs-next" onclick="scrollTabs(1)">›</button>
+  </div><!-- /tabs-wrap -->
 
   <!-- VUE GLOBALE -->
   <div id="panel-global" class="panel active">
@@ -1698,6 +1707,23 @@ function sortActTable(which, colIdx, thEl){
   rows.forEach(r=>tbody.appendChild(r));
   if(totalRow)tbody.appendChild(totalRow);
 }
+
+// TABS NAV
+function scrollTabs(dir){
+  const tabs=document.getElementById('tabs-bar');
+  if(!tabs)return;
+  tabs.scrollBy({left:dir*140,behavior:'smooth'});
+  setTimeout(checkTabsFade,300);
+}
+function checkTabsFade(){
+  const tabs=document.getElementById('tabs-bar');
+  if(!tabs)return;
+  const prev=document.getElementById('tabs-prev');
+  const next=document.getElementById('tabs-next');
+  if(prev)prev.disabled=tabs.scrollLeft<4;
+  if(next)next.disabled=tabs.scrollLeft+tabs.clientWidth>=tabs.scrollWidth-4;
+}
+window.addEventListener('load',()=>{setTimeout(checkTabsFade,200);});
 
 // BOOT
 (function(){
