@@ -105,6 +105,7 @@ select:focus{border-color:var(--blue)}
 .year-chip{border:1px solid var(--border);background:var(--s2);color:var(--muted);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s}
 .evol-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 canvas{display:block;width:100%!important;max-height:240px}
+@media(min-width:1400px){canvas{max-height:280px}}
 /* IMPORT */
 .import-hero{text-align:center;padding:20px 0 10px}
 .import-hero h2{font-size:20px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px}
@@ -143,9 +144,9 @@ canvas{display:block;width:100%!important;max-height:240px}
 .delta-up{color:var(--green);font-size:10px}.delta-dn{color:var(--red);font-size:10px}.delta-na{color:var(--dim);font-size:10px}
 .sortable th{cursor:pointer;user-select:none;white-space:nowrap}
 .sortable th:hover{color:var(--text)}
-.sort-icon{font-size:9px;margin-left:4px;opacity:.4}
-.sort-icon.asc{opacity:1;color:var(--blue)}
-.sort-icon.desc{opacity:1;color:var(--blue)}
+.sort-icon{font-size:10px;margin-left:4px;opacity:.35;transition:all .15s}
+.sort-icon.asc{opacity:1;color:var(--cyan);font-weight:700}
+.sort-icon.desc{opacity:1;color:var(--cyan);font-weight:700}
 @media(max-width:640px){
   header{padding:6px 10px;gap:5px}
   .logo-title span{display:none}
@@ -172,6 +173,41 @@ canvas{display:block;width:100%!important;max-height:240px}
   .print-hide{display:none!important}
   canvas{max-height:180px!important}
 }
+
+/* ── Mobile filter drawer ── */
+.filter-drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300}
+.filter-drawer-backdrop.open{display:block}
+.filter-drawer{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:20px 18px 32px;z-index:301;transform:translateY(100%);transition:transform .25s ease;max-height:70vh;overflow-y:auto}
+.filter-drawer.open{transform:translateY(0)}
+.drawer-handle{width:40px;height:4px;background:var(--dim);border-radius:2px;margin:0 auto 16px}
+.drawer-title{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text)}
+.drawer-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.drawer-row label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600}
+.btn-filter-toggle{background:var(--s3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .15s;display:none;align-items:center;gap:5px}
+.btn-filter-toggle:hover{color:var(--text);border-color:var(--blue)}
+.btn-filter-toggle.has-filter{color:var(--blue);border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08)}
+@media(max-width:640px){.btn-filter-toggle{display:flex}.header-controls .date-range,.header-controls .type-filter{display:none}}
+/* ── Export CSV ── */
+.btn-csv{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:10px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-weight:500;transition:all .15s;display:flex;align-items:center;gap:5px}
+.btn-csv:hover{color:var(--green);border-color:var(--green)}
+/* ── Heatmap charge conseiller ── */
+.heatmap-wrap{overflow-x:auto;margin-top:8px}
+.heatmap-table{border-collapse:separate;border-spacing:3px;font-size:10px;white-space:nowrap}
+.heatmap-table th{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:0 4px 6px;text-align:center}
+.heatmap-table td.hm-label{color:var(--text);font-weight:500;padding-right:8px;text-align:left;min-width:130px}
+.hm-cell{width:28px;height:22px;border-radius:4px;text-align:center;line-height:22px;font-family:'JetBrains Mono',monospace;font-size:9px;cursor:default;transition:transform .1s}
+.hm-cell:hover{transform:scale(1.15);z-index:1;position:relative}
+/* ── Tooltip KPI ── */
+.kpi[data-tip]{cursor:help}
+.kpi[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--s3);border:1px solid var(--border);color:var(--text);font-size:10px;padding:6px 10px;border-radius:7px;white-space:nowrap;max-width:240px;white-space:pre-line;text-align:center;z-index:50;line-height:1.5;pointer-events:none}
+/* ── Section anomalies import ── */
+.anomaly-block{background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.2);border-radius:8px;padding:10px 14px;margin-top:10px}
+.anomaly-block .ab-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--yellow);margin-bottom:8px}
+.anomaly-item{font-size:11px;color:var(--muted);line-height:1.8}
+.anomaly-item span{color:var(--text);font-family:'JetBrains Mono',monospace;font-weight:500}
+/* ── Mémorisation onglet ── */
+/* (pas de CSS nécessaire, géré en JS) */
+
 </style>
 </head>
 <body>
@@ -205,7 +241,37 @@ canvas{display:block;width:100%!important;max-height:240px}
       <button class="btn-sm" onclick="resetDates()">Tout</button>
     </div>
     <span class="filter-pill" id="fpill">Filtre actif</span>
+    <button class="btn-filter-toggle" id="btn-filter-toggle" onclick="openFilterDrawer()" title="Filtres">⚙ Filtres</button>
     <span style="font-size:10px;color:var(--muted)">Lot-et-Garonne · GDIN</span>
+  </div>
+  <!-- Drawer mobile filtres -->
+  <div class="filter-drawer-backdrop" id="drawer-backdrop" onclick="closeFilterDrawer()"></div>
+  <div class="filter-drawer" id="filter-drawer">
+    <div class="drawer-handle"></div>
+    <div class="drawer-title">Filtres</div>
+    <div class="drawer-row"><label>Type d'action</label>
+      <select id="typeFilterM" onchange="syncMobileFilter('type',this.value)">
+        <option value="">Tous</option>
+        <option value="Accompagnement">Accompagnement</option>
+        <option value="Prise de contact">Prise de contact</option>
+        <option value="Orientation vers un tiers">Orientation vers un tiers</option>
+      </select>
+    </div>
+    <div class="drawer-row"><label>Année</label>
+      <select id="yearFilterM" onchange="syncMobileFilter('year',this.value)">
+        <option value="">Toutes</option>
+      </select>
+    </div>
+    <div class="drawer-row"><label>Du</label>
+      <input type="date" id="dFromM" onchange="syncMobileFilter('dFrom',this.value)">
+    </div>
+    <div class="drawer-row"><label>Au</label>
+      <input type="date" id="dToM" onchange="syncMobileFilter('dTo',this.value)">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn-import" style="background:var(--blue);font-size:12px;padding:8px 18px" onclick="closeFilterDrawer()">Appliquer</button>
+      <button class="btn-sm" onclick="resetDates();closeFilterDrawer()">Réinitialiser</button>
+    </div>
   </div>
 </header>
 
@@ -227,7 +293,10 @@ canvas{display:block;width:100%!important;max-height:240px}
 
   <!-- VUE GLOBALE -->
   <div id="panel-global" class="panel active">
-    <div id="kpi-global" class="g5"></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+    <button class="btn-csv" onclick="exportCSV()">↓ CSV</button>
+  </div>
+  <div id="kpi-global" class="g5"></div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Thématiques</div><canvas id="ch-thema"></canvas></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition conseillers</div><canvas id="ch-conum"></canvas></div>
@@ -323,6 +392,10 @@ canvas{display:block;width:100%!important;max-height:240px}
       <table class="tbl"><thead><tr><th>Conseiller</th><th>Accompagnements</th><th>Taux complétion</th><th>Thématique principale</th></tr></thead>
       <tbody id="tbl-conum-all"></tbody></table>
     </div>
+    <div class="card g1" id="card-heatmap-conum">
+      <div class="card-title"><span class="dot" style="background:var(--yellow)"></span>Charge mensuelle — tous conseillers <span style="font-size:9px;color:var(--dim);font-weight:400;margin-left:6px">intensité par volume</span></div>
+      <div class="heatmap-wrap"><div id="heatmap-conum-container"></div></div>
+    </div>
   </div>
 
   <!-- ORIENTEURS -->
@@ -340,7 +413,10 @@ canvas{display:block;width:100%!important;max-height:240px}
       <div class="card-title"><span class="dot" style="background:var(--blue)"></span>Paramètres du rapport</div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
         <div><div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.8px">Conseiller</div><select id="sel-rpt-conum" onchange="onRptConumChange()"></select></div>
-        <div><div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.8px">Structure</div><select id="sel-rpt-cms" onchange="renderRapport()"><option value="">— Choisir —</option></select></div>
+        <div><div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.8px">Structure</div>
+          <div id="rpt-cms-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px"></div>
+          <select id="sel-rpt-cms" onchange="renderRapport()" style="display:none"><option value="">— Choisir —</option></select>
+        </div>
         <button class="btn-print" onclick="printRapport()">🖨 Imprimer</button>
       </div>
       <div id="rpt-header" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
@@ -423,6 +499,12 @@ canvas{display:block;width:100%!important;max-height:240px}
             <button class="btn-import" id="btn-confirm-import" onclick="confirmImport()">⬆ Fusionner avec les données existantes</button>
             <button class="btn-sm" onclick="cancelImport()">Annuler</button>
           </div>
+        </div>
+      </div>
+      <div id="import-anomalies" style="display:none">
+        <div class="anomaly-block">
+          <div class="ab-title">⚠ Rapport qualité des données</div>
+          <div id="anomaly-content"></div>
         </div>
       </div>
       <div id="import-error" style="display:none">
@@ -664,7 +746,7 @@ function getFiltered(){
   if(ty)d=d.filter(r=>r.type_action&&r.type_action.includes(ty));
   return d;
 }
-function resetDates(){updateDateRange();document.getElementById('typeFilter').value='';document.getElementById('yearFilter').value='';refreshAll();}
+function resetDates(){updateDateRange();document.getElementById('typeFilter').value='';document.getElementById('yearFilter').value='';refreshAll();try{document.getElementById('btn-filter-toggle').classList.remove('has-filter');}catch(e){}}
 
 function onYearFilterChange(){
   const yr=document.getElementById('yearFilter').value;
@@ -701,9 +783,10 @@ function switchTab(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');btn.classList.add('active');
+  try{sessionStorage.setItem('gdin_tab',id);}catch(e){}
   if(id==='evolution'){buildYearChips();renderEvolution();}
   if(id==='par-cms'){initCmsSelect();renderCms();}
-  if(id==='par-conum'){initConumSelect();renderConum();}
+  if(id==='par-conum'){initConumSelect();renderConum();renderHeatmapConum();}
   if(id==='orienteurs'){initOriCmsSelect();renderOrienteurs();}
   if(id==='import')updateCurrentSourceInfo();
   if(id==='actions'){if(ACTIONS_DATA)renderActions();}
@@ -719,8 +802,8 @@ function renderGlobal(){
   const cmsSet=new Set(data.map(r=>r.cms));
   const topThema=Object.keys(countThemas(data))[0]||'—';
   document.getElementById('kpi-global').innerHTML=`
-    <div class="kpi blue"><div class="kpi-label">Accompagnements</div><div class="kpi-value">${data.length}</div><div class="kpi-sub">période sélectionnée</div></div>
-    <div class="kpi green"><div class="kpi-label">Taux complétion</div><div class="kpi-value">${pct(data.length-noA,data.length)}%</div><div class="kpi-sub">${data.length-noA} avec date action</div></div>
+    <div class="kpi blue" data-tip="Total des demandes reçues\nsur la période filtrée"><div class="kpi-label">Accompagnements</div><div class="kpi-value">${data.length}</div><div class="kpi-sub">période sélectionnée</div></div>
+    <div class="kpi green" data-tip="% de dossiers avec\nune date d'action renseignée"><div class="kpi-label">Taux complétion</div><div class="kpi-value">${pct(data.length-noA,data.length)}%</div><div class="kpi-sub">${data.length-noA} avec date action</div></div>
     <div class="kpi orange"><div class="kpi-label">Conseillers actifs</div><div class="kpi-value">${conumSet.size}</div><div class="kpi-sub">sur la période</div></div>
     <div class="kpi purple"><div class="kpi-label">Structures couvertes</div><div class="kpi-value">${cmsSet.size}</div><div class="kpi-sub">CMS / structures</div></div>
     <div class="kpi cyan"><div class="kpi-label">Thématique dominante</div><div class="kpi-value" style="font-size:13px;line-height:1.5;padding-top:4px">${topThema}</div><div class="kpi-sub">${countThemas(data)[topThema]||0} demandes</div></div>`;
@@ -1042,6 +1125,7 @@ function renderConum(){
     rows+=`<tr style="${hl}"><td class="${conumClass(cn)}" style="font-weight:600">${cn}</td><td class="mono">${d.length}</td><td class="mono">${pct(d.length-noA2,d.length)}%</td><td><span class="badge badge-blue">${topT}</span></td></tr>`;
   });
   document.getElementById('tbl-conum-all').innerHTML=rows;
+  renderHeatmapConum();
 }
 
 // ORIENTEURS
@@ -1063,10 +1147,33 @@ function renderOrienteurs(){
 // RAPPORT
 function initRptSelects(){const sc=document.getElementById('sel-rpt-conum');sc.innerHTML='<option value="">— Conseiller —</option>';[...new Set(DATA.map(r=>r.conum))].filter(c=>c).sort().forEach(cn=>{const o=document.createElement('option');o.value=cn;o.textContent=cn;sc.appendChild(o);});}
 function onRptConumChange(){
-  const conum=document.getElementById('sel-rpt-conum').value,sel=document.getElementById('sel-rpt-cms');
+  const conum=document.getElementById('sel-rpt-conum').value;
+  const sel=document.getElementById('sel-rpt-cms');
+  const chipsEl=document.getElementById('rpt-cms-chips');
   sel.innerHTML='<option value="">— Structure —</option>';
+  chipsEl.innerHTML='';
+  sel.value='';
   if(!conum){renderRapport();return;}
-  Object.keys(count(getFiltered().filter(r=>r.conum===conum),'cms')).sort().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  const cmsOptions=Object.keys(count(getFiltered().filter(r=>r.conum===conum),'cms')).sort();
+  // Remplir le select caché (pour renderRapport qui lit sel-rpt-cms)
+  cmsOptions.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+  // Générer les chips visuels
+  cmsOptions.forEach(c=>{
+    const chip=document.createElement('button');
+    const shortName=c.replace('Centre Médico-Social de ','').replace('Centre Médico-Social ','').replace('Permanence - ','');
+    chip.textContent=shortName;
+    chip.title=c;
+    chip.className='year-chip';
+    chip.style.cssText='border-radius:8px;font-family:Space Grotesk,sans-serif;font-size:11px;white-space:nowrap';
+    chip.onclick=()=>{
+      // Désélectionner tous
+      chipsEl.querySelectorAll('button').forEach(b=>{b.style.background='var(--s2)';b.style.color='var(--muted)';b.style.borderColor='var(--border)';});
+      // Sélectionner ce chip
+      chip.style.background='rgba(59,130,246,.2)';chip.style.color='#fff';chip.style.borderColor='var(--blue)';
+      sel.value=c;renderRapport();
+    };
+    chipsEl.appendChild(chip);
+  });
   renderRapport();
 }
 function renderRapport(){
@@ -1291,6 +1398,16 @@ function showPreview(pd){
   const sizeKb=Math.round(JSON.stringify(records).length/1024);
   if(sizeKb>4500)pvW.innerHTML+=`<div class="alert-box">⚠ Fichier volumineux (${sizeKb} Ko). La sauvegarde localStorage peut échouer.</div>`;
   document.getElementById('import-preview').style.display='block';
+  // Rapport qualité
+  const anomEl=document.getElementById('import-anomalies');
+  const anomItems=buildAnomalyReport(records,null);
+  if(anomItems.length){
+    const content=anomItems.map(a=>`<div class="anomaly-item">• <span>${a.val}</span> <span style="color:${a.color}">—</span> ${a.label}</div>`).join('');
+    document.getElementById('anomaly-content').innerHTML=content;
+    anomEl.style.display='block';
+  } else {
+    anomEl.style.display='none';
+  }
 }
 
 function confirmImport(){
@@ -1313,7 +1430,7 @@ function confirmImport(){
   const dot=document.getElementById('cs-dot');dot.style.background='var(--green)';
   document.getElementById('cs-label').innerHTML=`<strong style="color:var(--green)">✓ Fusion réussie —</strong> ${DATA.length} enregistrements au total (${importMeta.years.join(', ')})`;
 }
-function cancelImport(){pendingData=null;['import-preview','import-error','parse-progress-box'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('file-input').value='';}
+function cancelImport(){pendingData=null;['import-preview','import-error','parse-progress-box','import-anomalies'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('file-input').value='';}
 function resetToEmbedded(){
   if(!confirm('Supprimer les données importées et revenir aux données intégrées ?'))return;
   clearStorage();const EXCL_RST=new Set(['Reservation','Ateliers']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL_RST.has(t))}))
@@ -1330,6 +1447,35 @@ function refreshAll(){
   if(document.getElementById('panel-par-conum').classList.contains('active'))renderConum();
   if(document.getElementById('panel-orienteurs').classList.contains('active'))renderOrienteurs();
   if(document.getElementById('panel-rapport').classList.contains('active'))renderRapport();
+}
+function exportCSV(){
+  const d=getFiltered();
+  if(!d.length){alert('Aucune donnée filtrée à exporter.');return;}
+  const cols=['date_demande','date_action','conum','cms','commune','themas','type_action','orienteur','motif'];
+  const header=cols.join(';');
+  const rows=d.map(r=>[
+    r.date_demande||'',
+    r.date_action||'',
+    r.conum||'',
+    r.cms||'',
+    r.commune||'',
+    (r.themas||[]).join('/'),
+    (r.type_action||[]).join(';'),
+    r.orienteur||'',
+    (r.motif||'').replace(/;/g,',').replace(/
+/g,' ')
+  ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';'));
+  const csv='﻿'+header+'
+'+rows.join('
+');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const f=document.getElementById('dFrom').value,t=document.getElementById('dTo').value;
+  a.download=`GDIN_export_${f}_${t}.csv`;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},500);
 }
 
 // PRINT
@@ -1722,6 +1868,45 @@ function sortActTable(which, colIdx, thEl){
 }
 
 // TABS NAV
+// ── MOBILE FILTER DRAWER ──
+function openFilterDrawer(){
+  // Sync mobile inputs with desktop state
+  document.getElementById('typeFilterM').value=document.getElementById('typeFilter').value;
+  document.getElementById('yearFilterM').value=document.getElementById('yearFilter').value;
+  document.getElementById('dFromM').value=document.getElementById('dFrom').value;
+  document.getElementById('dToM').value=document.getElementById('dTo').value;
+  // Populate year select in drawer
+  const ySel=document.getElementById('yearFilter');
+  const ySelM=document.getElementById('yearFilterM');
+  const curVal=ySelM.value;
+  ySelM.innerHTML=ySel.innerHTML;
+  ySelM.value=curVal;
+  document.getElementById('filter-drawer').classList.add('open');
+  document.getElementById('drawer-backdrop').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeFilterDrawer(){
+  document.getElementById('filter-drawer').classList.remove('open');
+  document.getElementById('drawer-backdrop').classList.remove('open');
+  document.body.style.overflow='';
+}
+function syncMobileFilter(type,val){
+  if(type==='type'){document.getElementById('typeFilter').value=val;}
+  else if(type==='year'){
+    document.getElementById('yearFilter').value=val;
+    onYearFilterChange();return;
+  }
+  else if(type==='dFrom'){document.getElementById('dFrom').value=val;}
+  else if(type==='dTo'){document.getElementById('dTo').value=val;}
+  refreshAll();
+  // Update filter toggle button style
+  const btn=document.getElementById('btn-filter-toggle');
+  const f=document.getElementById('dFrom').value,t=document.getElementById('dTo').value;
+  const dates=DATA.map(r=>r.date_demande).sort();
+  const dmin=dates[0]||'',dmax=dates[dates.length-1]||'';
+  const active=f!==dmin||t!==dmax||document.getElementById('typeFilter').value!==''||document.getElementById('yearFilter').value!=='';
+  btn.classList.toggle('has-filter',active);
+}
 function scrollTabs(dir){
   const tabs=document.getElementById('tabs-bar');
   if(!tabs)return;
@@ -1738,9 +1923,89 @@ function checkTabsFade(){
 }
 window.addEventListener('load',()=>{setTimeout(checkTabsFade,200);});
 
-// BOOT
+// ── HEATMAP CHARGE CONSEILLERS ──
+function renderHeatmapConum(){
+  const allData=getFiltered();
+  const allYears=[...new Set(allData.map(r=>r.date_demande.slice(0,4)))].sort();
+  const allConums=Object.keys(CONUM_COLORS);
+  const container=document.getElementById('heatmap-conum-container');
+  if(!container)return;
+  if(!allYears.length){container.innerHTML='<div style="color:var(--muted);font-size:11px;padding:10px">Aucune donnée</div>';return;}
+  // Build volume map: conum → year → month(1-12) → count
+  const vol={};
+  allConums.forEach(cn=>{vol[cn]={};allYears.forEach(yr=>{vol[cn][yr]=Array(12).fill(0);});});
+  allData.forEach(r=>{
+    if(!vol[r.conum])return;
+    const yr=r.date_demande.slice(0,4);
+    const mo=parseInt(r.date_demande.slice(5,7))-1;
+    if(vol[r.conum][yr]&&mo>=0&&mo<12)vol[r.conum][yr][mo]++;
+  });
+  // Max value for color scale
+  let maxVal=1;
+  allConums.forEach(cn=>allYears.forEach(yr=>vol[cn][yr].forEach(v=>{if(v>maxVal)maxVal=v;})));
+  function cellColor(v,baseColor){
+    if(!v)return'var(--s2)';
+    const op=Math.max(0.12,Math.min(0.85,v/maxVal));
+    // baseColor is hex
+    const r2=parseInt(baseColor.slice(1,3),16),g2=parseInt(baseColor.slice(3,5),16),b2=parseInt(baseColor.slice(5,7),16);
+    return`rgba(${r2},${g2},${b2},${op.toFixed(2)})`;
+  }
+  let tbl=`<table class="heatmap-table"><thead><tr><th></th>`;
+  // Headers: year + month abbr
+  allYears.forEach(yr=>{
+    MONTH_FR.forEach((m,mi)=>{ tbl+=`<th title="${m} ${yr}">${m.slice(0,1)}</th>`; });
+    if(allYears.indexOf(yr)<allYears.length-1)tbl+=`<th style="width:10px"></th>`;
+  });
+  tbl+=`</tr></thead><tbody>`;
+  allConums.forEach(cn=>{
+    const d=allData.filter(r=>r.conum===cn);
+    if(!d.length)return;
+    const color=CONUM_COLORS[cn]||'#6b7fa0';
+    const shortName=cn.split(' ')[0];
+    tbl+=`<tr><td class="hm-label" title="${cn}">${shortName}</td>`;
+    allYears.forEach((yr,yi)=>{
+      const vals=vol[cn][yr]||Array(12).fill(0);
+      vals.forEach((v,mi)=>{
+        const bg=cellColor(v,color);
+        const txt=v>0?v:'';
+        tbl+=`<td class="hm-cell" style="background:${bg}" title="${cn}\n${MONTH_FR[mi]} ${yr} : ${v} demande${v>1?'s':''}">${txt}</td>`;
+      });
+      if(yi<allYears.length-1)tbl+=`<td style="width:10px"></td>`;
+    });
+    tbl+=`</tr>`;
+  });
+  tbl+=`</tbody></table>`;
+  container.innerHTML=tbl;
+}
+
+// ── RAPPORT QUALITÉ à l'import ──
+function buildAnomalyReport(records, rawLines){
+  const items=[];
+  // 1. Lignes sans date action
+  const noDate=records.filter(r=>!r.date_action).length;
+  if(noDate>0)items.push({label:'Dossiers sans date d'action renseignée',val:noDate,color:'var(--yellow)'});
+  // 2. Orienteurs vides
+  const noOri=records.filter(r=>!r.orienteur||r.orienteur==='?').length;
+  if(noOri>0)items.push({label:'Dossiers sans orienteur identifié',val:noOri,color:'var(--muted)'});
+  // 3. Doublons potentiels (même clé)
+  function makeKey2(r){return`${r.date_demande}|${r.conum}|${r.orienteur}|${(r.motif||'').slice(0,30)}`;}
+  const keys=records.map(makeKey2);
+  const dupKeys=keys.filter((k,i)=>keys.indexOf(k)!==i);
+  if(dupKeys.length>0)items.push({label:'Doublons détectés (même jour/conum/orienteur/motif)',val:dupKeys.length,color:'var(--orange)'});
+  return items;
+}
+
+// ── BOOT ──
 (function(){
   initData();initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();renderGlobal();
+  // Restaurer l'onglet actif
+  try{
+    const saved=sessionStorage.getItem('gdin_tab');
+    if(saved&&saved!=='global'){
+      const btn=document.querySelector(`.tab[onclick*="switchTab('${saved}'"]`);
+      if(btn)switchTab(saved,btn);
+    }
+  }catch(e){}
 })();
 </script>
 </body>
