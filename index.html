@@ -673,7 +673,7 @@ function parseXlsText(text){
     const da=excelDate(cols[8]);
     let cms=(cols[15]||'').trim();
     cms=normCms(cms);
-    if(!cms)continue;
+    if(!cms||cms==='Inconnu')continue;
     const themas=(cols[12]||'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
     for(const p of (cols[6]||'').split(';')){const t=p.trim();if(t&&t!=='Reservation'&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
@@ -694,8 +694,8 @@ function initData(){
   // Also filter Reservation from embedded data at init
   const stored=loadFromStorage();
   if(stored){DATA=stored.records;dataSource='imported';importMeta=stored.meta;updateSourceBadge(true,stored.meta);}
-  else{DATA=EMBEDDED.map(r=>({...r,type_action:(r.type_action||[]).filter(t=>t!=='Reservation')}))
-    .filter(r=>KEEP_CMS.has(normCms(r.cms)));dataSource='embedded';updateSourceBadge(false,null);}
+  else{DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>t!=='Reservation')}))
+    .filter(r=>r.cms!==null&&KEEP_CMS.has(r.cms));dataSource='embedded';updateSourceBadge(false,null);}
   updateAllYears();updateDateRange();updateCurrentSourceInfo();
 }
 function updateAllYears(){
@@ -1169,7 +1169,8 @@ function renderRapport(){
     actMiss.style.display='none';
     actSec.style.display='block';
     // Filter actions by conum + cms
-    const actData=ACTIONS_DATA.filter(r=>r.conum===conum&&r.cms===cms);
+    const cmNorm=normCms(cms)||cms;
+    const actData=ACTIONS_DATA.filter(r=>r.conum===conum&&(r.cms===cms||r.cms===cmNorm));
     const aReal=actData.filter(r=>r.etat==='Réalisée').length;
     const aNon=actData.filter(r=>r.etat==='Non réalisée').length;
     const aEnc=actData.filter(r=>r.etat==='En cours').length;
@@ -1261,7 +1262,7 @@ function parseXlsxBinary(arraybuffer){
     const da=xlDate(cols[8]);
     let cms=String(cols[15]||'').trim();
     cms=normCms(cms);
-    if(!cms)continue;
+    if(!cms||cms==='Inconnu')continue;
     const themas=String(cols[12]||'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
     for(const p of String(cols[6]||'').split(';')){
@@ -1377,8 +1378,8 @@ function confirmImport(){
 function cancelImport(){pendingData=null;['import-preview','import-error','parse-progress-box'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('file-input').value='';}
 function resetToEmbedded(){
   if(!confirm('Supprimer les données importées et revenir aux données intégrées ?'))return;
-  clearStorage();DATA=EMBEDDED.map(r=>({...r,type_action:(r.type_action||[]).filter(t=>t!=='Reservation')}))
-    .filter(r=>KEEP_CMS.has(normCms(r.cms)));
+  clearStorage();DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>t!=='Reservation')}))
+    .filter(r=>r.cms!==null&&KEEP_CMS.has(r.cms));
   dataSource='embedded';importMeta=null;updateSourceBadge(false,null);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
 }
