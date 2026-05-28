@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GDIN — Dashboard Activité Conum</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -196,6 +200,27 @@ body.pres-mode .tbl th{font-size:11px}
   .container{padding:8px 12px!important}
   @page{margin:1cm;size:A4 landscape}
 }
+
+
+/* ── Leaflet dark theme ── */
+#terr-map .leaflet-tile-pane{filter:brightness(.7) saturate(.6) hue-rotate(180deg) invert(1) contrast(.9)}
+#terr-map .leaflet-container{background:#0b0f19}
+.leaflet-popup-content-wrapper{background:var(--s1)!important;border:1px solid var(--border)!important;color:var(--text)!important;border-radius:8px!important;box-shadow:0 4px 20px rgba(0,0,0,.5)!important}
+.leaflet-popup-tip{background:var(--s1)!important}
+.leaflet-popup-content{margin:10px 14px!important;font-family:'Space Grotesk',sans-serif!important;font-size:12px!important;line-height:1.6}
+.leaflet-popup-close-button{color:var(--muted)!important}
+
+/* ── Carte Leaflet ── */
+#map-territoire{height:440px;border-radius:10px;overflow:hidden;background:var(--s2)}
+.leaflet-container{background:#1a2235!important}
+.map-legend{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;line-height:2}
+.map-legend-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:middle}
+
+
+.leaflet-popup-dark .leaflet-popup-content-wrapper{background:var(--s1);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.5);color:var(--text)}
+.leaflet-popup-dark .leaflet-popup-tip{background:var(--s1)}
+.leaflet-popup-dark .leaflet-popup-close-button{color:var(--muted)!important}
+.leaflet-label-dark{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important}
 
 /* ── Mobile filter drawer ── */
 .filter-drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300}
@@ -437,30 +462,24 @@ body.pres-mode .tbl th{font-size:11px}
   <!-- TERRITOIRE -->
   <div id="panel-territoire" class="panel">
     <div class="frow" style="flex-wrap:wrap;gap:12px">
-      <div><label>Vue :</label>
-        <div class="toggle-group" id="terr-mode" style="display:inline-flex">
-          <button class="toggle-btn active" onclick="setTerrMode('cms',this)">Par CMS</button>
-          <button class="toggle-btn" onclick="setTerrMode('conum',this)">Par Conseiller</button>
+      <div>
+        <div class="toggle-group" id="terr-color-mode">
+          <button class="toggle-btn active" onclick="setTerrColorMode('completion',this)" title="Couleur = taux de complétion">Complétion</button>
+          <button class="toggle-btn" onclick="setTerrColorMode('conum',this)" title="Couleur = conseiller dominant">Conseiller</button>
         </div>
       </div>
-      <div><label>Top communes :</label>
-        <select id="terr-top" onchange="renderTerritoire()" style="font-size:11px;padding:3px 8px">
-          <option value="20">Top 20</option>
-          <option value="30">Top 30</option>
-          <option value="50">Top 50</option>
-          <option value="0">Toutes</option>
-        </select>
+      <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:var(--muted)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block"></span>≥ 70% réalisés</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#f97316;display:inline-block"></span>40–70%</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block"></span>&lt; 40%</span>
       </div>
     </div>
-    <div class="card g1">
-      <div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Volume par commune
-        <span style="font-size:9px;color:var(--dim);font-weight:400;margin-left:8px">intensité = nb demandes · ligne = commune · colonne = structure</span>
-      </div>
-      <div id="terr-heatmap" style="overflow-x:auto;overflow-y:auto;max-height:500px"></div>
+    <div class="card g1" style="padding:0;overflow:hidden">
+      <div id="terr-map" style="height:420px;width:100%;border-radius:10px;background:#1a2235"></div>
     </div>
     <div class="g2" style="margin-top:0">
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top communes — volume total</div><canvas id="ch-terr-bar" style="max-height:280px"></canvas></div>
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques par commune (top 10)</div><canvas id="ch-terr-thema" style="max-height:280px"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 communes — volume</div><canvas id="ch-terr-bar" style="max-height:260px"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques des communes affichées</div><canvas id="ch-terr-thema" style="max-height:260px"></canvas></div>
     </div>
   </div>
 
@@ -2092,128 +2111,145 @@ function checkTabsFade(){
 window.addEventListener('load',()=>{setTimeout(checkTabsFade,200);});
 
 
+
+
+const COMMUNE_COORDS={"AGEN": [44.2042, 0.6208], "AGEN CEDEX 9": [44.2042, 0.6208], "VILLENEUVE-SUR-LOT": [44.4085, 0.7056], "VILLENEUVE SUR LOT": [44.4085, 0.7056], "VILLENEUVE/LOT": [44.4085, 0.7056], "MARMANDE": [44.5006, 0.1644], "TONNEINS": [44.3906, 0.3089], "NERAC": [44.1361, 0.3397], "AIGUILLON": [44.2989, 0.3411], "FUMEL": [44.4961, 1.0836], "LE PASSAGE": [44.1942, 0.6417], "LE PASSAGE D'AGEN": [44.1942, 0.6417], "MONSEMPRON-LIBOS": [44.4908, 1.0286], "FOULAYRONNES": [44.2239, 0.6625], "CASTELJALOUX": [44.3139, 0.0931], "MONTAYRAL": [44.5089, 1.0661], "DAMAZAN": [44.2997, 0.2803], "LAVARDAC": [44.1794, 0.2997], "CLAIRAC": [44.3542, 0.3778], "ESTILLAC": [44.1608, 0.605], "BON-ENCONTRE": [44.1736, 0.6558], "CONDEZAYGUES": [44.4678, 1.0475], "PONT-DU-CASSE": [44.2206, 0.6722], "PONT DU CASSE": [44.2206, 0.6722], "BOE": [44.1769, 0.6047], "BARBASTE": [44.1589, 0.2703], "PUJOLS": [44.3906, 0.7297], "LAPARADE": [44.3756, 0.4583], "ST-VITE": [44.4211, 1.0075], "SAINT-VITE": [44.4211, 1.0075], "CALONGES": [44.3272, 0.3097], "PORT-SAINTE-MARIE": [44.2467, 0.3953], "CUZORN": [44.4817, 1.0194], "BUZET-SUR-BAISE": [44.2594, 0.3025], "COLAYRAC-ST-CIRQ": [44.2206, 0.5875], "COLAYRAC ST CIRQ": [44.2206, 0.5875], "MEZIN": [44.0658, 0.2592], "SERIGNAC-SUR-GARONNE": [44.1481, 0.5736], "MONFLANQUIN": [44.5283, 0.7708], "FARGUES-SUR-OURBISE": [44.2617, 0.1056], "ASTAFFORT": [44.0603, 0.6592], "STE-LIVRADE-SUR-LOT": [44.3986, 0.5919], "SAINTE-LIVRADE-SUR-LOT": [44.3986, 0.5919], "AUBIAC": [44.1531, 0.6919], "LACAPELLE-BIRON": [44.6119, 0.8625], "SAINTE-BAZEILLE": [44.4803, 0.1736], "STE-BAZEILLE": [44.4803, 0.1736], "VIANNE": [44.2033, 0.3167], "MASQUIERES": [44.4667, 1.0028], "MIRAMONT-DE-GUYENNE": [44.6022, 0.3631], "MIRAMONT DE GUYENNE": [44.6022, 0.3631], "MIRAMONT DE GUYENE": [44.6022, 0.3631], "ST-MAURIN": [44.0644, 0.7031], "ST-FRONT-SUR-LEMANCE": [44.6117, 1.0589], "ROQUEFORT": [44.0419, 0.3225], "CASSENEUIL": [44.4394, 0.6303], "PENNE-D'AGENAIS": [44.3661, 0.9403], "TOURNON D AGENAIS": [44.3917, 0.9086], "CAUDECOSTE": [44.1047, 0.7608], "LAROQUE-TIMBAUT": [44.2181, 0.7806], "LAROQUE TIMBAUT": [44.2181, 0.7806], "BRAX": [44.1839, 0.57], "LAYRAC": [44.1397, 0.6614], "MEILHAN-SUR-GARONNE": [44.4728, 0.0728], "FAUILLET": [44.4411, 0.2286], "VERTEUIL-D'AGENAIS": [44.3728, 0.535], "COUTHURES-SUR-GARONNE": [44.4425, 0.2253], "GAUJAC": [44.0786, 0.4492], "BAJAMONT": [44.2386, 0.7244], "LASSERRE": [44.0486, 0.3375], "CALIGNAC": [44.0825, 0.3878], "MONTIGNAC-TOUPINERIE": [44.5831, 0.3033], "ESPIENS": [44.0753, 0.3617], "ST-QUENTIN-DU-DROPT": [44.6219, 0.5403], "ST-PASTOUR": [44.4206, 0.6844], "SAINT-HILAIRE-DE-LUSIGNAN": [44.1678, 0.6147], "GONTAUD-DE-NOGARET": [44.4206, 0.3453], "HOUIEILLES": [44.2431, 0.1281], "HOUEILLES": [44.2431, 0.1281], "CAZIDEROQUE": [44.4753, 0.9086], "POUSSIGNAC": [44.2767, 0.1125], "ROMESTAING": [44.2878, 0.0936], "LAUZUN": [44.6231, 0.3978], "VIRAZEIL": [44.4511, 0.2181], "SAUVETERRE-LA-LEMANCE": [44.5881, 1.0589], "LA REUNION": [44.3761, 0.4372], "BLAYMONT": [44.3511, 0.835], "PUCH-D'AGENAIS": [44.3228, 0.3894], "FRECHOU": [44.0458, 0.4022], "GUEYZE": [44.1631, 0.1236], "VILLEREAL": [44.6361, 0.7475], "MONCLAR D'AGENAIS": [44.3594, 0.7803], "CASTILONNES": [44.6481, 0.5789], "MONSEGUR": [44.6458, 0.0675], "LANNES": [44.0547, 0.27], "ST-LAURENT": [44.1869, 0.9161], "FAUGUEROLLES": [44.4736, 0.2444], "BOURRAN": [44.2661, 0.5736], "BIAS": [44.405, 0.9644], "47130 BAZENS": [44.3172, 0.5086], "BAZENS": [44.3172, 0.5086], "SAINTE-COLOMBE-EN-BRUILHOIS": [44.1697, 0.5528], "SAINT SYLVESTRE S LOT": [44.4119, 0.6531], "ST BARTHELEMY D AGENAIS": [44.4011, 0.2292], "ALLEZ ET CAZENEUVE": [44.4097, 0.8325], "TOULOUSE": [43.6047, 1.4442], "STE LIVRADE SUR LOT": [44.3986, 0.5919], "MONCLAR D AGENAIS": [44.3594, 0.7803], "CASTELMORON-SUR-LOT": [44.3897, 0.4903], "SAINT MARTIN DE CURTON": [44.4078, 0.2969], "VILLETON": [44.3628, 0.2822], "GONTAUD DE NOGARET": [44.4206, 0.3453]};
+
 // ── TERRITOIRE ──
-let terrModeVal='cms';
-function setTerrMode(mode,btn){
-  terrModeVal=mode;
-  document.querySelectorAll('#terr-mode .toggle-btn').forEach(b=>b.classList.remove('active'));
+let terrColorMode='completion';
+let terrMap=null, terrMarkers=[];
+
+function setTerrColorMode(mode,btn){
+  terrColorMode=mode;
+  document.querySelectorAll('#terr-color-mode .toggle-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderTerritoire();
+}
+
+function getCircleColor(r,data,mode){
+  if(mode==='conum'){
+    // Couleur du conseiller dominant
+    const cnCount={};
+    data.forEach(d=>{if(d.conum)cnCount[d.conum]=(cnCount[d.conum]||0)+1;});
+    const topCN=Object.entries(cnCount).sort((a,b)=>b[1]-a[1])[0];
+    return topCN?CONUM_COLORS[topCN[0]]||'#6b7fa0':'#6b7fa0';
+  }
+  // Mode complétion
+  const total=data.length;
+  if(!total)return'#6b7fa0';
+  const done=data.filter(d=>d.date_action).length;
+  const rate=done/total;
+  if(rate>=0.7)return'#10b981';
+  if(rate>=0.4)return'#f97316';
+  return'#3b82f6';
 }
 
 function renderTerritoire(){
   const data=getFiltered();
   const topN=parseInt(document.getElementById('terr-top').value)||20;
 
-  // Compter par commune (exclure communes vides)
-  const commCount={};
+  // Compter total et avec date_action par commune (clé UPPERCASE)
+  const commCount={},commDone={};
   data.forEach(r=>{
-    if(!r.commune||r.commune.trim()==='')return;
-    const c=r.commune.trim();
+    if(!r.commune||!r.commune.trim())return;
+    const c=r.commune.trim().toUpperCase();
     commCount[c]=(commCount[c]||0)+1;
+    if(r.date_action)commDone[c]=(commDone[c]||0)+1;
   });
   let communes=Object.entries(commCount).sort((a,b)=>b[1]-a[1]);
   if(topN>0)communes=communes.slice(0,topN);
-  const commNames=communes.map(c=>c[0]);
+  const commNames=new Set(communes.map(c=>c[0]));
 
-  // Colonnes = CMS ou Conum selon mode
-  let cols, colLabel;
-  if(terrModeVal==='cms'){
-    cols=[...new Set(data.map(r=>r.cms).filter(Boolean))].sort();
-    colLabel=c=>c;
-  } else {
-    cols=Object.keys(CONUM_COLORS);
-    colLabel=c=>c.split(' ')[0];
+  function bubbleColor(nom){
+    const total=commCount[nom]||0,done=commDone[nom]||0;
+    const ratio=total>0?done/total:0;
+    return ratio>=0.7?'#10b981':ratio>=0.4?'#f97316':'#3b82f6';
   }
 
-  // Build volume matrix
-  const matrix={};
-  commNames.forEach(com=>{matrix[com]={};cols.forEach(col=>{matrix[com][col]=0;});});
-  data.forEach(r=>{
-    if(!r.commune||r.commune.trim()==='')return;
-    const com=r.commune.trim();
-    if(!matrix[com])return;
-    const colKey=terrModeVal==='cms'?r.cms:r.conum;
-    if(colKey&&matrix[com][colKey]!==undefined)matrix[com][colKey]++;
-  });
+  // ── CARTE LEAFLET ──
+  const mapEl=document.getElementById('map-territoire');
+  if(!mapEl)return;
+  if(window._leafletMap){try{window._leafletMap.remove();}catch(e){}window._leafletMap=null;}
+  mapEl.innerHTML='';
 
-  // Max pour scale couleur
-  let maxVal=1;
-  commNames.forEach(com=>cols.forEach(col=>{if(matrix[com][col]>maxVal)maxVal=matrix[com][col];}));
+  const map=L.map('map-territoire',{center:[44.35,0.6],zoom:9,zoomControl:true,attributionControl:false});
+  window._leafletMap=map;
 
-  function cellBg(v){
-    if(!v)return'var(--s2)';
-    const op=Math.max(0.1,Math.min(0.9,v/maxVal*0.9+0.1));
-    return'rgba(34,211,238,'+op.toFixed(2)+')';
-  }
-  function cellFg(v){return v>maxVal*0.5?'#fff':'var(--muted)';}
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    subdomains:'abcd',maxZoom:19
+  }).addTo(map);
 
-  // Heatmap HTML
-  let tbl='<table style="border-collapse:separate;border-spacing:2px;font-size:10px;white-space:nowrap;min-width:max-content">';
-  tbl+='<thead><tr><th style="text-align:left;padding:0 8px 6px;color:var(--muted);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:130px">Commune</th>';
-  tbl+='<th style="padding:0 6px 6px;color:var(--muted);font-size:9px;text-align:center;font-weight:600">Total</th>';
-  cols.forEach(col=>{tbl+=`<th style="padding:0 4px 6px;color:var(--muted);font-size:9px;text-align:center;font-weight:500;max-width:70px;overflow:hidden;text-overflow:ellipsis" title="${col}">${colLabel(col).slice(0,12)}</th>`;});
-  tbl+='</tr></thead><tbody>';
-  commNames.forEach((com,ci)=>{
-    const total=commCount[com];
-    const bg=ci%2===0?'var(--s2)':'transparent';
-    tbl+=`<tr style="background:${bg}">`;
-    tbl+=`<td style="padding:3px 8px;color:var(--text);font-weight:500">${com}</td>`;
-    tbl+=`<td style="padding:3px 6px;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--cyan);font-weight:600">${total}</td>`;
-    cols.forEach(col=>{
-      const v=matrix[com][col];
-      const bg2=cellBg(v);
-      const fg=cellFg(v);
-      tbl+=`<td style="padding:3px 4px;text-align:center;background:${bg2};border-radius:3px;min-width:32px;font-family:'JetBrains Mono',monospace;color:${fg};font-size:9px" title="${com} / ${colLabel(col)}: ${v}">${v||''}</td>`;
+  const maxVol=communes[0]?communes[0][1]:1;
+  function radius(n){return Math.max(7,Math.sqrt(n/maxVol)*40);}
+
+  let placed=0;
+  communes.forEach(([nom])=>{
+    const total=commCount[nom]||0;
+    // Chercher coordonnées (essayer plusieurs variantes)
+    const coords=COMMUNE_COORDS[nom]||COMMUNE_COORDS[nom.charAt(0)+nom.slice(1).toLowerCase()];
+    if(!coords)return;
+    const done=commDone[nom]||0;
+    const ratio=total>0?Math.round(done/total*100):0;
+    const color=bubbleColor(nom);
+    const r=radius(total);
+
+    // Détail selon mode
+    let detail='';
+    if(terrModeVal==='cms'){
+      const acc={};
+      data.filter(d=>d.commune&&d.commune.trim().toUpperCase()===nom).forEach(d=>{if(d.cms)acc[d.cms]=(acc[d.cms]||0)+1;});
+      detail=Object.entries(acc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([c,n])=>`${c}: ${n}`).join('<br>');
+    } else {
+      const acc={};
+      data.filter(d=>d.commune&&d.commune.trim().toUpperCase()===nom).forEach(d=>{if(d.conum)acc[d.conum]=(acc[d.conum]||0)+1;});
+      detail=Object.entries(acc).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`${c.split(' ')[0]}: ${n}`).join(' · ');
+    }
+
+    const circle=L.circleMarker(coords,{
+      radius:r,fillColor:color,fillOpacity:0.72,
+      color:'#fff',weight:1.5,opacity:0.9
     });
-    tbl+='</tr>';
-  });
-  tbl+='</tbody></table>';
-  document.getElementById('terr-heatmap').innerHTML=tbl;
 
-  // Bar horizontal communes
+    circle.bindPopup(`<div style="font-family:'Space Grotesk',sans-serif;min-width:160px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">${nom}</div><div style="font-size:11px;color:#6b7fa0;margin-bottom:4px">${total} demande${total>1?'s':''} · ${ratio}% complétées</div><div style="font-size:10px;color:#aaa;line-height:1.7">${detail}</div></div>`,{className:'leaflet-popup-dark'});
+
+    if(total>=5){
+      const shortLabel=nom.split('-')[0].split(' ')[0];
+      L.tooltip({permanent:true,direction:'right',className:'leaflet-label-dark',offset:[r+4,0]})
+        .setContent(`<span style="font-size:9px;font-weight:600;color:#dde6f5">${shortLabel}</span>`)
+        .setLatLng(coords).addTo(map);
+    }
+
+    circle.addTo(map);
+    placed++;
+  });
+
+  if(placed===0){
+    mapEl.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:440px;color:var(--muted);font-size:12px">Aucune commune géolocalisée dans les données filtrées</div>';
+  }
+
+  // ── Bar horizontal communes ──
   const barComms=communes.slice(0,15).reverse();
   destroyChart('ch-terr-bar');
   charts['ch-terr-bar']=new Chart(document.getElementById('ch-terr-bar'),{
     type:'bar',
-    data:{
-      labels:barComms.map(c=>c[0]),
-      datasets:[{
-        data:barComms.map(c=>c[1]),
-        backgroundColor:barComms.map(c=>{
-          const r=c[1]/(communes[0]?communes[0][1]:1);
-          return r>0.7?'rgba(34,211,238,.8)':r>0.4?'rgba(59,130,246,.7)':'rgba(107,127,160,.55)';
-        }),
-        borderWidth:0,borderRadius:4,borderSkipped:false
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      indexAxis:'y',
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:10}}},
-        y:{grid:{display:false},ticks:{color:'#dde6f5',font:{size:10},autoSkip:false}}
-      }
+    data:{labels:barComms.map(c=>c[0]),datasets:[{data:barComms.map(c=>c[1]),backgroundColor:barComms.map(c=>bubbleColor(c[0])),borderWidth:0,borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const n=barComms.slice().reverse()[ctx.dataIndex][0];const done=commDone[n]||0,tot=commCount[n]||0;return[`${ctx.parsed.x} demandes`,`${Math.round(done/tot*100)}% complétées`];}}}},
+      scales:{x:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:10}}},y:{grid:{display:false},ticks:{color:'#dde6f5',font:{size:10},autoSkip:false}}}
     }
   });
 
-  // Donut thématiques des communes affichées
-  const topCommData=data.filter(r=>r.commune&&commNames.includes(r.commune.trim()));
+  // ── Donut thématiques ──
+  const topCommData=data.filter(r=>r.commune&&commNames.has(r.commune.trim().toUpperCase()));
   const thEntries=Object.entries(countThemas(topCommData)).sort((a,b)=>b[1]-a[1]).slice(0,8);
   destroyChart('ch-terr-thema');
   charts['ch-terr-thema']=new Chart(document.getElementById('ch-terr-thema'),{
     type:'doughnut',
     data:{labels:thEntries.map(t=>t[0]),datasets:[{data:thEntries.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:'#111827',hoverOffset:6}]},
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{position:'right',labels:{color:'#dde6f5',font:{size:10},padding:6,boxWidth:8}},
-        tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,topCommData.length)}%)`}}
-      }
-    }
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#dde6f5',font:{size:10},padding:6,boxWidth:8}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,topCommData.length)}%)`}}}}
   });
 }
+
 
 // ── HEATMAP CHARGE CONSEILLERS ──
 function renderHeatmapConum(){
