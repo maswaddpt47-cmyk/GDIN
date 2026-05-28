@@ -309,6 +309,7 @@ body.pres-mode .tbl th{font-size:11px}
     <button class="tab" onclick="switchTab('par-cms',this)">Par CMS</button>
     <button class="tab" onclick="switchTab('par-conum',this)">Par Conseiller</button>
     <button class="tab" onclick="switchTab('orienteurs',this)">Orienteurs</button>
+    <button class="tab" onclick="switchTab('territoire',this)">🗺 Territoire</button>
     <button class="tab" onclick="switchTab('rapport',this)">📋 Rapport</button>
     <button class="tab import-tab" onclick="switchTab('import',this)">⬆ Import données</button>
     <button class="tab import-tab" onclick="switchTab('actions',this)" style="color:var(--orange)">⬆ Import états actions</button>
@@ -423,9 +424,43 @@ body.pres-mode .tbl th{font-size:11px}
   <!-- ORIENTEURS -->
   <div id="panel-orienteurs" class="panel">
     <div class="frow"><label>CMS :</label><select id="sel-ori-cms" onchange="renderOrienteurs()"><option value="">Tous</option></select></div>
+    <div class="g2">
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 orienteurs — volume de demandes</div><canvas id="ch-ori-bar" style="max-height:320px"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition par thématique (orienteurs actifs)</div><canvas id="ch-ori-thema" style="max-height:320px"></canvas></div>
+    </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Travailleurs sociaux orienteurs</div>
-      <table class="tbl"><thead><tr><th>Orienteur</th><th>Structure</th><th>Demandes</th><th>Conseiller principal</th><th>Thématique principale</th></tr></thead>
+      <table class="tbl sortable" id="tbl-ori-wrap"><thead><tr><th>Orienteur</th><th>Structure</th><th>Demandes</th><th>Conseiller principal</th><th>Thématique principale</th></tr></thead>
       <tbody id="tbl-ori"></tbody></table>
+    </div>
+  </div>
+
+  <!-- TERRITOIRE -->
+  <div id="panel-territoire" class="panel">
+    <div class="frow" style="flex-wrap:wrap;gap:12px">
+      <div><label>Vue :</label>
+        <div class="toggle-group" id="terr-mode" style="display:inline-flex">
+          <button class="toggle-btn active" onclick="setTerrMode('cms',this)">Par CMS</button>
+          <button class="toggle-btn" onclick="setTerrMode('conum',this)">Par Conseiller</button>
+        </div>
+      </div>
+      <div><label>Top communes :</label>
+        <select id="terr-top" onchange="renderTerritoire()" style="font-size:11px;padding:3px 8px">
+          <option value="20">Top 20</option>
+          <option value="30">Top 30</option>
+          <option value="50">Top 50</option>
+          <option value="0">Toutes</option>
+        </select>
+      </div>
+    </div>
+    <div class="card g1">
+      <div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Volume par commune
+        <span style="font-size:9px;color:var(--dim);font-weight:400;margin-left:8px">intensité = nb demandes · ligne = commune · colonne = structure</span>
+      </div>
+      <div id="terr-heatmap" style="overflow-x:auto;overflow-y:auto;max-height:500px"></div>
+    </div>
+    <div class="g2" style="margin-top:0">
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top communes — volume total</div><canvas id="ch-terr-bar" style="max-height:280px"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques par commune (top 10)</div><canvas id="ch-terr-thema" style="max-height:280px"></canvas></div>
     </div>
   </div>
 
@@ -810,6 +845,7 @@ function switchTab(id,btn){
   if(id==='par-cms'){initCmsSelect();renderCms();}
   if(id==='par-conum'){initConumSelect();renderConum();renderHeatmapConum();}
   if(id==='orienteurs'){initOriCmsSelect();renderOrienteurs();}
+  if(id==='territoire'){renderTerritoire();}
   if(id==='import')updateCurrentSourceInfo();
   if(id==='actions'){if(ACTIONS_DATA)renderActions();}
 }
@@ -990,9 +1026,43 @@ function renderEvolution(){
   const allF=getFiltered();
   const mAll=[...new Set(allF.map(r=>r.date_demande.slice(0,7)))].sort();
 
-  // CMS monthly
+  // CMS monthly — line area empilé
   destroyChart('ch-cms-monthly');
-  charts['ch-cms-monthly']=new Chart(document.getElementById('ch-cms-monthly'),{type:'line',data:{labels:mAll.map(monthLabel),datasets:CMS_MAIN.slice(0,6).map((cms,i)=>({label:cms,data:mAll.map(k=>allF.filter(r=>r.cms===cms&&r.date_demande.startsWith(k)).length),borderColor:PALETTE[i],borderWidth:2,pointRadius:2,tension:.35,fill:false}))},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#6b7fa0',font:{size:9},padding:5,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:9}}},y:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:10}}}}}});
+  {
+    const top6=CMS_MAIN.slice(0,6);
+    const areaDatasets=top6.map((cms,i)=>({
+      label:cms,
+      data:mAll.map(k=>allF.filter(r=>r.cms===cms&&r.date_demande.startsWith(k)).length),
+      borderColor:PALETTE[i],
+      borderWidth:1.5,
+      backgroundColor:PALETTE[i]+'44',
+      pointRadius:1.5,
+      pointHoverRadius:5,
+      tension:.4,
+      fill:true,
+      stack:'area'
+    }));
+    charts['ch-cms-monthly']=new Chart(document.getElementById('ch-cms-monthly'),{
+      type:'line',
+      data:{labels:mAll.map(monthLabel),datasets:areaDatasets},
+      options:{
+        responsive:true,maintainAspectRatio:true,
+        interaction:{mode:'index',intersect:false},
+        plugins:{
+          legend:{labels:{color:'#6b7fa0',font:{size:9},padding:5,boxWidth:8}},
+          tooltip:{callbacks:{
+            title:items=>items[0].label,
+            label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}`,
+            footer:items=>`Total: ${items.reduce((s,i)=>s+i.parsed.y,0)}`
+          }}
+        },
+        scales:{
+          x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:9}}},
+          y:{grid:{color:'#1a2235'},beginAtZero:true,stacked:true,ticks:{color:'#6b7fa0',font:{size:10}}}
+        }
+      }
+    });
+  }
 
   // Types monthly (stacked)
   destroyChart('ch-type-monthly');
@@ -1155,13 +1225,78 @@ function initOriCmsSelect(){const sel=document.getElementById('sel-ori-cms');sel
 function renderOrienteurs(){
   const cms=document.getElementById('sel-ori-cms').value;
   let data=getFiltered();if(cms)data=data.filter(r=>r.cms===cms);
+
+  // Trier par volume desc, exclure vides
+  const oriEntries=Object.entries(count(data,'orienteur')).filter(([n])=>n&&n!=='?').sort((a,b)=>b[1]-a[1]);
+
+  // ── Graphe bar horizontal top 15 ──
+  const top15=oriEntries.slice(0,15);
+  // Labels courts: "NOM P." (nom + initiale prénom)
+  function shortName(n){const p=n.split(' ');return p.length>=2?p[0]+' '+p[p.length-1][0]+'.':n;}
+  const barLabels=top15.map(([n])=>shortName(n)).reverse();
+  const barVals=top15.map(([,v])=>v).reverse();
+  const barColors=barVals.map(v=>{
+    const max=barVals[barVals.length-1]||1;
+    const ratio=v/max;
+    return ratio>0.7?'rgba(59,130,246,.8)':ratio>0.4?'rgba(34,211,238,.7)':'rgba(107,127,160,.6)';
+  });
+  destroyChart('ch-ori-bar');
+  charts['ch-ori-bar']=new Chart(document.getElementById('ch-ori-bar'),{
+    type:'bar',
+    data:{labels:barLabels,datasets:[{
+      data:barVals,
+      backgroundColor:barColors,
+      borderColor:barColors.map(c=>c.replace(/[\d.]+\)$/,'1)')),
+      borderWidth:1,borderRadius:4,borderSkipped:false
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          label:ctx=>{
+            const name=top15.slice().reverse()[ctx.dataIndex][0];
+            const od=data.filter(r=>r.orienteur===name);
+            const topT=Object.keys(countThemas(od))[0]||'—';
+            return [`${ctx.parsed.x} demandes`,`Thématique: ${topT}`];
+          }
+        }}
+      },
+      scales:{
+        x:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:10}}},
+        y:{grid:{display:false},ticks:{color:'#dde6f5',font:{size:10},autoSkip:false}}
+      }
+    }
+  });
+
+  // ── Graphe donut thématiques globales des orienteurs actifs ──
+  const themaAll=countThemas(data);
+  const themaEntries=Object.entries(themaAll).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  destroyChart('ch-ori-thema');
+  charts['ch-ori-thema']=new Chart(document.getElementById('ch-ori-thema'),{
+    type:'doughnut',
+    data:{labels:themaEntries.map(t=>t[0]),datasets:[{
+      data:themaEntries.map(t=>t[1]),
+      backgroundColor:PALETTE,borderWidth:2,borderColor:'#111827',hoverOffset:8
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'right',labels:{color:'#dde6f5',font:{size:10},padding:8,boxWidth:8}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,data.length)}%)`}}
+      }
+    }
+  });
+
+  // ── Tableau ──
   let rows='';
-  Object.entries(count(data,'orienteur')).slice(0,40).forEach(([name,n])=>{
+  oriEntries.slice(0,40).forEach(([name,n])=>{
     const od=data.filter(r=>r.orienteur===name);
-    const struct=(Object.keys(count(od,'cms'))[0]||'—').replace('Centre Médico-Social ','CMS ').replace('Centre Médico-Social de ','CMS ');
+    const struct=(Object.keys(count(od,'cms'))[0]||'—');
     const topCN=(Object.keys(count(od,'conum'))[0]||'—');
     const topT=Object.keys(countThemas(od))[0]||'—';
-    rows+=`<tr><td>${name}</td><td>${struct}</td><td class="mono">${n}</td><td class="${conumClass(topCN)}">${topCN.split(' ')[0]}</td><td><span class="badge badge-blue">${topT}</span></td></tr>`;
+    rows+=`<tr><td>${name}</td><td>${struct}</td><td class="mono" data-val="${n}">${n}</td><td class="${conumClass(topCN)}">${topCN.split(' ')[0]}</td><td><span class="badge badge-blue">${topT}</span></td></tr>`;
   });
   document.getElementById('tbl-ori').innerHTML=rows;
 }
@@ -1468,6 +1603,7 @@ function refreshAll(){
   if(document.getElementById('panel-par-cms').classList.contains('active')){initCmsSelect();renderCms();}
   if(document.getElementById('panel-par-conum').classList.contains('active'))renderConum();
   if(document.getElementById('panel-orienteurs').classList.contains('active'))renderOrienteurs();
+  if(document.getElementById('panel-territoire').classList.contains('active'))renderTerritoire();
   if(document.getElementById('panel-rapport').classList.contains('active'))renderRapport();
 }
 function exportCSV(){
@@ -1954,6 +2090,130 @@ function checkTabsFade(){
   if(next)next.disabled=tabs.scrollLeft+tabs.clientWidth>=tabs.scrollWidth-4;
 }
 window.addEventListener('load',()=>{setTimeout(checkTabsFade,200);});
+
+
+// ── TERRITOIRE ──
+let terrModeVal='cms';
+function setTerrMode(mode,btn){
+  terrModeVal=mode;
+  document.querySelectorAll('#terr-mode .toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTerritoire();
+}
+
+function renderTerritoire(){
+  const data=getFiltered();
+  const topN=parseInt(document.getElementById('terr-top').value)||20;
+
+  // Compter par commune (exclure communes vides)
+  const commCount={};
+  data.forEach(r=>{
+    if(!r.commune||r.commune.trim()==='')return;
+    const c=r.commune.trim();
+    commCount[c]=(commCount[c]||0)+1;
+  });
+  let communes=Object.entries(commCount).sort((a,b)=>b[1]-a[1]);
+  if(topN>0)communes=communes.slice(0,topN);
+  const commNames=communes.map(c=>c[0]);
+
+  // Colonnes = CMS ou Conum selon mode
+  let cols, colLabel;
+  if(terrModeVal==='cms'){
+    cols=[...new Set(data.map(r=>r.cms).filter(Boolean))].sort();
+    colLabel=c=>c;
+  } else {
+    cols=Object.keys(CONUM_COLORS);
+    colLabel=c=>c.split(' ')[0];
+  }
+
+  // Build volume matrix
+  const matrix={};
+  commNames.forEach(com=>{matrix[com]={};cols.forEach(col=>{matrix[com][col]=0;});});
+  data.forEach(r=>{
+    if(!r.commune||r.commune.trim()==='')return;
+    const com=r.commune.trim();
+    if(!matrix[com])return;
+    const colKey=terrModeVal==='cms'?r.cms:r.conum;
+    if(colKey&&matrix[com][colKey]!==undefined)matrix[com][colKey]++;
+  });
+
+  // Max pour scale couleur
+  let maxVal=1;
+  commNames.forEach(com=>cols.forEach(col=>{if(matrix[com][col]>maxVal)maxVal=matrix[com][col];}));
+
+  function cellBg(v){
+    if(!v)return'var(--s2)';
+    const op=Math.max(0.1,Math.min(0.9,v/maxVal*0.9+0.1));
+    return'rgba(34,211,238,'+op.toFixed(2)+')';
+  }
+  function cellFg(v){return v>maxVal*0.5?'#fff':'var(--muted)';}
+
+  // Heatmap HTML
+  let tbl='<table style="border-collapse:separate;border-spacing:2px;font-size:10px;white-space:nowrap;min-width:max-content">';
+  tbl+='<thead><tr><th style="text-align:left;padding:0 8px 6px;color:var(--muted);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;min-width:130px">Commune</th>';
+  tbl+='<th style="padding:0 6px 6px;color:var(--muted);font-size:9px;text-align:center;font-weight:600">Total</th>';
+  cols.forEach(col=>{tbl+=`<th style="padding:0 4px 6px;color:var(--muted);font-size:9px;text-align:center;font-weight:500;max-width:70px;overflow:hidden;text-overflow:ellipsis" title="${col}">${colLabel(col).slice(0,12)}</th>`;});
+  tbl+='</tr></thead><tbody>';
+  commNames.forEach((com,ci)=>{
+    const total=commCount[com];
+    const bg=ci%2===0?'var(--s2)':'transparent';
+    tbl+=`<tr style="background:${bg}">`;
+    tbl+=`<td style="padding:3px 8px;color:var(--text);font-weight:500">${com}</td>`;
+    tbl+=`<td style="padding:3px 6px;text-align:center;font-family:'JetBrains Mono',monospace;color:var(--cyan);font-weight:600">${total}</td>`;
+    cols.forEach(col=>{
+      const v=matrix[com][col];
+      const bg2=cellBg(v);
+      const fg=cellFg(v);
+      tbl+=`<td style="padding:3px 4px;text-align:center;background:${bg2};border-radius:3px;min-width:32px;font-family:'JetBrains Mono',monospace;color:${fg};font-size:9px" title="${com} / ${colLabel(col)}: ${v}">${v||''}</td>`;
+    });
+    tbl+='</tr>';
+  });
+  tbl+='</tbody></table>';
+  document.getElementById('terr-heatmap').innerHTML=tbl;
+
+  // Bar horizontal communes
+  const barComms=communes.slice(0,15).reverse();
+  destroyChart('ch-terr-bar');
+  charts['ch-terr-bar']=new Chart(document.getElementById('ch-terr-bar'),{
+    type:'bar',
+    data:{
+      labels:barComms.map(c=>c[0]),
+      datasets:[{
+        data:barComms.map(c=>c[1]),
+        backgroundColor:barComms.map(c=>{
+          const r=c[1]/(communes[0]?communes[0][1]:1);
+          return r>0.7?'rgba(34,211,238,.8)':r>0.4?'rgba(59,130,246,.7)':'rgba(107,127,160,.55)';
+        }),
+        borderWidth:0,borderRadius:4,borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:10}}},
+        y:{grid:{display:false},ticks:{color:'#dde6f5',font:{size:10},autoSkip:false}}
+      }
+    }
+  });
+
+  // Donut thématiques des communes affichées
+  const topCommData=data.filter(r=>r.commune&&commNames.includes(r.commune.trim()));
+  const thEntries=Object.entries(countThemas(topCommData)).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  destroyChart('ch-terr-thema');
+  charts['ch-terr-thema']=new Chart(document.getElementById('ch-terr-thema'),{
+    type:'doughnut',
+    data:{labels:thEntries.map(t=>t[0]),datasets:[{data:thEntries.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:'#111827',hoverOffset:6}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'right',labels:{color:'#dde6f5',font:{size:10},padding:6,boxWidth:8}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,topCommData.length)}%)`}}
+      }
+    }
+  });
+}
 
 // ── HEATMAP CHARGE CONSEILLERS ──
 function renderHeatmapConum(){
