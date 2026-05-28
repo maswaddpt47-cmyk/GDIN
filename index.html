@@ -222,6 +222,7 @@ body.pres-mode .tbl th{font-size:11px}
 .leaflet-popup-dark .leaflet-popup-close-button{color:var(--muted)!important}
 .leaflet-label-dark{background:rgba(255,255,255,0.85)!important;border:none!important;box-shadow:none!important;padding:1px 3px!important;border-radius:2px!important}
 
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 /* ── Mobile filter drawer ── */
 .filter-drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300}
 .filter-drawer-backdrop.open{display:block}
@@ -864,7 +865,12 @@ function switchTab(id,btn){
   if(id==='par-cms'){initCmsSelect();renderCms();}
   if(id==='par-conum'){initConumSelect();renderConum();renderHeatmapConum();}
   if(id==='orienteurs'){initOriCmsSelect();renderOrienteurs();}
-  if(id==='territoire'){renderTerritoire();}
+  if(id==='territoire'){
+    // Double requestAnimationFrame garantit que le DOM est peint avant Leaflet
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      renderTerritoire();
+    });});
+  }
   if(id==='import')updateCurrentSourceInfo();
   if(id==='actions'){if(ACTIONS_DATA)renderActions();}
 }
@@ -1617,6 +1623,12 @@ function resetToEmbedded(){
 
 // REFRESH
 function refreshAll(){
+  // Reset carte territoire si données ont changé
+  if(window._leafletMap&&!document.getElementById('panel-territoire').classList.contains('active')){
+    try{window._leafletMap.remove();}catch(e){}
+    window._leafletMap=null;
+    window._geoApiLoaded=false;
+  }
   renderGlobal();
   if(document.getElementById('panel-evolution').classList.contains('active')){buildYearChips();renderEvolution();}
   if(document.getElementById('panel-par-cms').classList.contains('active')){initCmsSelect();renderCms();}
@@ -2254,12 +2266,20 @@ function renderTerritoire(){
       placed++;
     });
 
+    setTimeout(function(){map.invalidateSize();setTimeout(function(){map.invalidateSize();},400);},100);
+
     if(placed===0){
       mapEl.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:440px;color:var(--muted);font-size:12px">Aucune commune géolocalisée ('+communes.length+' communes dans les données)</div>';
     }
   }
 
   // Appel API geo.api.gouv.fr pour enrichir les coords dynamiquement
+  // Afficher indicateur pendant chargement carte
+  const mapEl2=document.getElementById('map-territoire');
+  if(mapEl2&&!window._leafletMap){
+    mapEl2.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:440px;color:var(--muted);font-size:12px;gap:8px"><span style="animation:spin 1s linear infinite;display:inline-block">⟳</span> Chargement de la carte…</div>';
+  }
+
   if(!window._geoApiLoaded){
     fetch('https://geo.api.gouv.fr/departements/47/communes?fields=nom,centre&format=json&geometry=centre')
       .then(r=>r.json())
