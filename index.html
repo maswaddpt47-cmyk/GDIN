@@ -358,10 +358,32 @@ canvas{display:block;width:100%!important;max-height:240px}
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Orienteurs actifs dans ce CMS</div><div id="bar-rpt-ori" class="bar-list"></div></div>
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--purple)"></span>Activité CN : ce CMS vs autres structures</div><canvas id="ch-rpt-comp"></canvas></div>
       </div>
-      <div class="card">
-        <div class="card-title"><span class="dot" style="background:var(--blue)"></span>Liste des accompagnements<span id="rpt-count" class="ct-action"></span></div>
-        <table class="tbl"><thead><tr><th>Date demande</th><th>Commune</th><th>Thématique(s)</th><th>Motif</th><th>Type action</th><th>Date action</th><th>Orienteur</th></tr></thead>
-        <tbody id="tbl-rpt"></tbody></table>
+      <!-- États actions pour ce conum × CMS -->
+      <div id="rpt-actions-section" style="display:none">
+        <div class="g3">
+          <div class="card">
+            <div class="card-title"><span class="dot" style="background:var(--green)"></span>État des accompagnements</div>
+            <canvas id="ch-rpt-act-donut" style="max-height:200px"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="dot" style="background:var(--red)"></span>Non réalisés — évolution mensuelle</div>
+            <canvas id="ch-rpt-act-monthly" style="max-height:200px"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="dot" style="background:var(--purple)"></span>Non réalisés — N vs N-1</div>
+            <canvas id="ch-rpt-act-yoy" style="max-height:200px"></canvas>
+          </div>
+        </div>
+        <div class="card g1">
+          <div class="card-title"><span class="dot" style="background:var(--orange)"></span>États des accompagnements — détail</div>
+          <table class="tbl">
+            <thead><tr><th>État</th><th>Nombre</th><th>%</th><th>Évolution vs total</th></tr></thead>
+            <tbody id="tbl-rpt-act"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="rpt-actions-missing" style="display:none">
+        <div class="info-box">ℹ Importe le fichier <strong>Etat_Actions</strong> pour afficher les graphes de réalisation dans ce rapport.</div>
       </div>
     </div>
     <div id="rpt-empty" class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sélectionne un conseiller et une structure</div><div style="font-size:11px;margin-top:4px">Le rapport sera généré pour la combinaison choisie</div></div>
@@ -1140,12 +1162,64 @@ function renderRapport(){
   const top5cms=Object.entries(count(dataConum,'cms')).slice(0,5);
   destroyChart('ch-rpt-comp');
   charts['ch-rpt-comp']=new Chart(document.getElementById('ch-rpt-comp'),{type:'bar',data:{labels:top5cms.map(([c])=>c.replace('Centre Médico-Social ','CMS ').replace('Centre Médico-Social de ','CMS ')),datasets:[{data:top5cms.map(([,v])=>v),backgroundColor:top5cms.map(([c])=>c===cms?'rgba(59,130,246,.7)':'rgba(59,130,246,.2)'),borderColor:top5cms.map(([c])=>c===cms?'#3b82f6':'#253047'),borderRadius:5,borderSkipped:false,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:10}}},y:{grid:{display:false},ticks:{color:'#dde6f5',font:{size:10}}}}}});
-  document.getElementById('rpt-count').textContent=` — ${data.length} enregistrements`;
-  let rows='';
-  [...data].sort((a,b)=>b.date_demande.localeCompare(a.date_demande)).forEach(r=>{
-    rows+=`<tr><td class="mono">${r.date_demande}</td><td>${r.commune}</td><td>${(r.themas||[]).map(t=>`<span class="badge badge-blue">${t}</span>`).join(' ')}</td><td style="max-width:180px;font-size:11px">${r.motif}</td><td>${(r.type_action||[]).map(t=>`<span class="badge badge-orange">${t}</span>`).join(' ')}</td><td class="mono">${r.date_action||'—'}</td><td style="font-size:11px">${r.orienteur}</td></tr>`;
-  });
-  document.getElementById('tbl-rpt').innerHTML=rows;
+  // ── États actions pour ce conum × CMS ──
+  const actSec=document.getElementById('rpt-actions-section');
+  const actMiss=document.getElementById('rpt-actions-missing');
+  if(ACTIONS_DATA&&ACTIONS_DATA.length){
+    actMiss.style.display='none';
+    actSec.style.display='block';
+    // Filter actions by conum + cms
+    const actData=ACTIONS_DATA.filter(r=>r.conum===conum&&r.cms===cms);
+    const aReal=actData.filter(r=>r.etat==='Réalisée').length;
+    const aNon=actData.filter(r=>r.etat==='Non réalisée').length;
+    const aEnc=actData.filter(r=>r.etat==='En cours').length;
+    const aTot=actData.length;
+
+    // Donut
+    destroyChart('ch-rpt-act-donut');
+    charts['ch-rpt-act-donut']=new Chart(document.getElementById('ch-rpt-act-donut'),{
+      type:'doughnut',
+      data:{labels:['Réalisée','Non réalisée','En cours'],datasets:[{data:[aReal,aNon,aEnc],backgroundColor:['#10b981','#ef4444','#f97316'],borderWidth:2,borderColor:'#111827',hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{color:'#dde6f5',font:{size:10},padding:8,boxWidth:8}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,aTot)}%)`}}}}
+    });
+
+    // Monthly non réalisés
+    const mKeys=[...new Set(allData.map(r=>r.date_demande.slice(0,7)))].sort();
+    destroyChart('ch-rpt-act-monthly');
+    charts['ch-rpt-act-monthly']=new Chart(document.getElementById('ch-rpt-act-monthly'),{
+      type:'bar',
+      data:{labels:mKeys.map(monthLabel),datasets:[
+        {label:'Non réalisée',data:mKeys.map(m=>actData.filter(r=>r.date&&r.date.startsWith(m.slice(0,7))&&r.etat==='Non réalisée').length),backgroundColor:'rgba(239,68,68,.55)',borderColor:'#ef4444',borderWidth:1,stack:'s',borderSkipped:false,borderRadius:3},
+        {label:'Réalisée',data:mKeys.map(m=>actData.filter(r=>r.date&&r.date.startsWith(m.slice(0,7))&&r.etat==='Réalisée').length),backgroundColor:'rgba(16,185,129,.45)',borderColor:'#10b981',borderWidth:1,stack:'s',borderSkipped:false,borderRadius:0}
+      ]},
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#dde6f5',font:{size:9},boxWidth:7,padding:5}}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:9}}},y:{grid:{color:'#1a2235'},beginAtZero:true,stacked:true,ticks:{color:'#6b7fa0',font:{size:9}}}}}
+    });
+
+    // YoY non réalisés par mois calendaire
+    const actYears=[...new Set(actData.map(r=>r.year).filter(Boolean))].sort();
+    destroyChart('ch-rpt-act-yoy');
+    charts['ch-rpt-act-yoy']=new Chart(document.getElementById('ch-rpt-act-yoy'),{
+      type:'bar',
+      data:{labels:MONTH_FR,datasets:actYears.map((yr,i)=>{
+        const col=YEAR_PALETTE[i%YEAR_PALETTE.length];
+        const vals=Array(12).fill(0);
+        actData.filter(r=>r.year===yr&&r.etat==='Non réalisée').forEach(r=>{if(r.date){const m=parseInt(r.date.slice(5,7))-1;if(m>=0)vals[m]++;}});
+        return{label:yr,data:vals,backgroundColor:col+'66',borderColor:col,borderWidth:1.5,borderRadius:3,borderSkipped:false};
+      })},
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#dde6f5',font:{size:9},boxWidth:7,padding:5}}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:9}}},y:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:9}}}}}
+    });
+
+    // Detail table
+    function txBar(p,col){return `<div style="display:flex;align-items:center;gap:5px"><div style="flex:1;background:var(--s3);border-radius:3px;height:5px;overflow:hidden"><div style="width:${p}%;height:100%;background:${col};border-radius:3px"></div></div><span class="mono" style="color:${col};font-size:10px">${p}%</span></div>`;}
+    document.getElementById('tbl-rpt-act').innerHTML=
+      `<tr><td style="color:var(--green);font-weight:600">Réalisée</td><td class="mono">${aReal}</td><td style="min-width:80px">${txBar(pct(aReal,aTot),'#10b981')}</td><td>${txBar(pct(aReal,aTot),'#10b981')}</td></tr>`+
+      `<tr><td style="color:var(--red);font-weight:600">Non réalisée</td><td class="mono">${aNon}</td><td style="min-width:80px">${txBar(pct(aNon,aTot),'#ef4444')}</td><td>${txBar(pct(aNon,aTot),'#ef4444')}</td></tr>`+
+      `<tr><td style="color:var(--orange);font-weight:600">En cours</td><td class="mono">${aEnc}</td><td style="min-width:80px">${txBar(pct(aEnc,aTot),'#f97316')}</td><td>${txBar(pct(aEnc,aTot),'#f97316')}</td></tr>`+
+      `<tr class="total-row"><td style="font-weight:700">TOTAL</td><td class="mono">${aTot}</td><td></td><td></td></tr>`;
+  } else {
+    actSec.style.display='none';
+    actMiss.style.display='block';
+  }
 }
 
 // IMPORT
