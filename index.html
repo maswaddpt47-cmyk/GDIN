@@ -219,6 +219,7 @@ body.pres-mode .tbl th{font-size:11px}
 .btn-map-fs{position:absolute;top:10px;right:10px;z-index:1000;background:var(--s1);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;transition:all .15s;line-height:1}
 .btn-map-fs:hover{color:var(--text);border-color:var(--blue)}
 #map-territoire.map-is-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;z-index:9999!important;border-radius:0!important;}
+.btn-map-fs.map-fs-active{position:fixed!important;top:14px!important;right:14px!important;z-index:10000!important;background:var(--s1);font-size:16px;padding:8px 12px;border-color:var(--blue);color:var(--text)}
 
 
 .leaflet-popup-dark .leaflet-popup-content-wrapper{background:var(--s1);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.5);color:var(--text)}
@@ -2442,13 +2443,12 @@ function toggleMapFullscreen(){
   const mapEl=document.getElementById('map-territoire');
   const btn=document.getElementById('btn-map-fs');
   const isFs=mapEl.classList.toggle('map-is-fullscreen');
+  btn.classList.toggle('map-fs-active',isFs);
   btn.textContent=isFs?'✕':'⤢';
   btn.title=isFs?'Quitter le plein écran':'Plein écran';
-  // Forcer le resize de la carte Leaflet
   setTimeout(()=>{if(window._leafletMap)window._leafletMap.invalidateSize();},50);
-  // Echap pour quitter
   if(isFs){
-    const onKey=e=>{if(e.key==='Escape'){mapEl.classList.remove('map-is-fullscreen');btn.textContent='⤢';btn.title='Plein écran';if(window._leafletMap)window._leafletMap.invalidateSize();document.removeEventListener('keydown',onKey);}};
+    const onKey=e=>{if(e.key==='Escape'){mapEl.classList.remove('map-is-fullscreen');btn.classList.remove('map-fs-active');btn.textContent='⤢';btn.title='Plein écran';if(window._leafletMap)window._leafletMap.invalidateSize();document.removeEventListener('keydown',onKey);}};
     document.addEventListener('keydown',onKey);
   }
 }
