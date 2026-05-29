@@ -215,6 +215,10 @@ body.pres-mode .tbl th{font-size:11px}
 .leaflet-container{background:#1a2235!important}
 .map-legend{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;line-height:2}
 .map-legend-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.map-fullscreen-wrap{position:relative}
+.btn-map-fs{position:absolute;top:10px;right:10px;z-index:1000;background:var(--s1);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;transition:all .15s;line-height:1}
+.btn-map-fs:hover{color:var(--text);border-color:var(--blue)}
+#map-territoire.map-is-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;z-index:9999!important;border-radius:0!important;}
 
 
 .leaflet-popup-dark .leaflet-popup-content-wrapper{background:var(--s1);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.5);color:var(--text)}
@@ -477,7 +481,10 @@ body.pres-mode .tbl th{font-size:11px}
       </div>
     </div>
     <div class="card g1" style="padding:0;overflow:hidden">
-      <div id="map-territoire" style="height:420px;width:100%;border-radius:10px;background:#1a2235"></div>
+      <div class="map-fullscreen-wrap">
+        <div id="map-territoire" style="height:420px;width:100%;border-radius:10px;background:#1a2235"></div>
+        <button class="btn-map-fs" onclick="toggleMapFullscreen()" id="btn-map-fs" title="Plein écran">⤢</button>
+      </div>
     </div>
     <div class="g2" style="margin-top:0">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 communes — volume</div><canvas id="ch-terr-bar" style="max-height:260px"></canvas></div>
@@ -549,7 +556,7 @@ body.pres-mode .tbl th{font-size:11px}
     <div style="max-width:760px;margin:0 auto">
       <div class="current-source g1" id="current-source-info">
         <div class="cs-info"><div class="cs-dot" id="cs-dot" style="background:var(--muted)"></div><span id="cs-label">Chargement…</span></div>
-        <button class="btn-reset-data" id="btn-reset" onclick="resetToEmbedded()" style="display:none">Réinitialiser (données intégrées)</button>
+        <button class="btn-reset-data" id="btn-reset" onclick="resetToEmbedded()">🗑 Réinitialiser (données intégrées)</button>
       </div>
       <div class="drop-zone g1" id="drop-zone">
         <input type="file" id="file-input" accept=".xls,.xlsx,.txt,.csv" onchange="handleFileSelect(this.files[0])">
@@ -611,7 +618,7 @@ body.pres-mode .tbl th{font-size:11px}
     <div style="max-width:860px;margin:0 auto">
       <div class="current-source g1" id="act-source-info">
         <div class="cs-info"><div class="cs-dot" id="act-dot" style="background:var(--muted)"></div><span id="act-label">Aucune donnée chargée</span></div>
-        <button class="btn-reset-data" id="act-btn-reset" onclick="resetActions()" style="display:none">Effacer</button>
+        <button class="btn-reset-data" id="act-btn-reset" onclick="resetActions()">🗑 Effacer les données</button>
       </div>
       <div class="drop-zone g1" id="act-drop-zone">
         <input type="file" id="act-file-input" accept=".xlsx,.xls" onchange="handleActionsFile(this.files[0])">
@@ -806,7 +813,7 @@ function updateAllYears(){
 }
 function updateDateRange(){const dates=DATA.map(r=>r.date_demande).sort();const dmin=dates[0]||'2025-01-01',dmax=dates[dates.length-1]||'2026-12-31';document.getElementById('dFrom').value=dmin;document.getElementById('dTo').value=dmax;}
 function updateSourceBadge(imp,meta){const b=document.getElementById('data-source-badge');if(imp&&meta){b.className='data-source imported';b.textContent=`📂 ${meta.filename} — ${meta.count} enregistrements`;}else{b.className='data-source embedded';b.textContent='données intégrées';}}
-function updateCurrentSourceInfo(){const dot=document.getElementById('cs-dot'),label=document.getElementById('cs-label'),btn=document.getElementById('btn-reset');if(dataSource==='imported'&&importMeta){dot.style.background='var(--green)';label.innerHTML=`<strong style="color:var(--green)">${importMeta.filename}</strong> — ${importMeta.count} enregistrements · ${importMeta.years.join(', ')} · importé le ${importMeta.date}`;btn.style.display='inline-block';}else{dot.style.background='var(--muted)';label.innerHTML=`<span style="color:var(--muted)">Données intégrées (${EMBEDDED.length} enregistrements, partiel)</span>`;btn.style.display='none';}}
+function updateCurrentSourceInfo(){const dot=document.getElementById('cs-dot'),label=document.getElementById('cs-label');if(dataSource==='imported'&&importMeta){dot.style.background='var(--green)';label.innerHTML=`<strong style="color:var(--green)">${importMeta.filename}</strong> — ${importMeta.count} enregistrements · ${importMeta.years.join(', ')} · importé le ${importMeta.date}`;}else{dot.style.background='var(--muted)';label.innerHTML=`<span style="color:var(--muted)">Données intégrées (${EMBEDDED.length} enregistrements, partiel)</span>`;}}
 
 // YEAR CHIPS
 function buildYearChips(){
@@ -1720,7 +1727,7 @@ function resetActions(){
   document.getElementById('act-dashboard').style.display='none';
   document.getElementById('act-dot').style.background='var(--muted)';
   document.getElementById('act-label').textContent='Aucune donnée chargée';
-  document.getElementById('act-btn-reset').style.display='none';
+  // btn always visible
 }
 
 function parseActionsXlsx(arraybuffer){
@@ -1830,7 +1837,7 @@ function updateActionsUI(filename){
   // Badge
   document.getElementById('act-dot').style.background='var(--orange)';
   document.getElementById('act-label').innerHTML=`<strong style="color:var(--orange)">${filename||'Données chargées'}</strong> — ${ACTIONS_DATA.length} accompagnements · ${years.join(', ')}`;
-  document.getElementById('act-btn-reset').style.display='inline-block';
+  // btn always visible
   // Reset active years so new import always shows all years
   window.actActiveYears=null; window.actYearsInit=false;
   document.getElementById('act-dashboard').style.display='block';
@@ -2428,6 +2435,22 @@ function buildAnomalyReport(records, rawLines){
   const dupKeys=keys.filter((k,i)=>keys.indexOf(k)!==i);
   if(dupKeys.length>0)items.push({label:'Doublons détectés (même jour/conum/orienteur/motif)',val:dupKeys.length,color:'var(--orange)'});
   return items;
+}
+
+// ── CARTE PLEIN ÉCRAN ──
+function toggleMapFullscreen(){
+  const mapEl=document.getElementById('map-territoire');
+  const btn=document.getElementById('btn-map-fs');
+  const isFs=mapEl.classList.toggle('map-is-fullscreen');
+  btn.textContent=isFs?'✕':'⤢';
+  btn.title=isFs?'Quitter le plein écran':'Plein écran';
+  // Forcer le resize de la carte Leaflet
+  setTimeout(()=>{if(window._leafletMap)window._leafletMap.invalidateSize();},50);
+  // Echap pour quitter
+  if(isFs){
+    const onKey=e=>{if(e.key==='Escape'){mapEl.classList.remove('map-is-fullscreen');btn.textContent='⤢';btn.title='Plein écran';if(window._leafletMap)window._leafletMap.invalidateSize();document.removeEventListener('keydown',onKey);}};
+    document.addEventListener('keydown',onKey);
+  }
 }
 
 // ── BOOT ──
