@@ -2735,8 +2735,8 @@ function getCoordsGlobal(nom){
 // ── HEATMAP CHARGE CONSEILLERS ──
 function renderHeatmapConum(){
   const allData=getFiltered();
-  const allYears=[...new Set(allData.map(r=>r.date_demande.slice(0,4)))].sort();
-  const allConums=Object.keys(CONUM_COLORS).filter(c=>!c.includes('CHIBANE'));
+  const allYears=[...new Set(DATA.map(r=>r.date_demande.slice(0,4)))].sort();
+  const allConums=[...new Set(DATA.map(r=>r.conum).filter(c=>c&&!c.includes('CHIBANE')))].sort();
   const container=document.getElementById('heatmap-conum-container');
   if(!container)return;
   if(!allYears.length){container.innerHTML='<div style="color:var(--muted);font-size:11px;padding:10px">Aucune donnée</div>';return;}
