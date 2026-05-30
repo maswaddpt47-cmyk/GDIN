@@ -1086,7 +1086,7 @@ function renderEvolution(){
       });
     } else if(evolModeVal==='conum'){
       // One stack per year, subdivided by conseiller
-      const conums=[...new Set(DATA.map(r=>r.conum))].filter(c=>c);
+      const conums=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE'));
       years.forEach(yr=>{
         conums.forEach(cn=>{
           const vals=Array(12).fill(0);
@@ -1166,7 +1166,7 @@ function renderEvolution(){
       const vals=mKeys.map(k=>mc[k]||0),maxV=Math.max(...vals);
       datasets=[{label:'Demandes',data:vals,backgroundColor:mKeys.map(k=>(mc[k]||0)===maxV?'rgba(59,130,246,.7)':'rgba(59,130,246,.3)'),borderColor:'#3b82f6',borderRadius:6,borderSkipped:false,borderWidth:1,type:'bar'},{label:'Tendance',data:vals,type:'line',borderColor:'#22d3ee',borderWidth:2,pointRadius:4,pointBackgroundColor:'#22d3ee',tension:.35,fill:false}];
     } else if(evolModeVal==='conum'){
-      const conums=[...new Set(DATA.map(r=>r.conum))].filter(c=>c);
+      const conums=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE'));
       datasets=conums.map(cn=>({label:cn.split(' ')[0],data:mKeys.map(k=>data.filter(r=>r.conum===cn&&r.date_demande.startsWith(k)).length),backgroundColor:conumColor(cn)+'88',borderColor:conumColor(cn),borderWidth:1.5,borderRadius:4,borderSkipped:false,type:'bar',stack:'s'}));
     } else {
       datasets=CMS_MAIN.slice(0,6).map((cms,i)=>({label:cms,data:mKeys.map(k=>data.filter(r=>r.cms===cms&&r.date_demande.startsWith(k)).length),backgroundColor:PALETTE[i]+'88',borderColor:PALETTE[i],borderWidth:1.5,borderRadius:4,borderSkipped:false,type:'bar',stack:'s'}));
@@ -1221,7 +1221,7 @@ function renderEvolution(){
   charts['ch-type-monthly']=new Chart(document.getElementById('ch-type-monthly'),{type:'bar',data:{labels:mAll.map(monthLabel),datasets:TYPE_KEYS.map((t,i)=>({label:t,data:mAll.map(k=>allF.filter(r=>r.date_demande.startsWith(k)&&r.type_action&&r.type_action.includes(t)).length),backgroundColor:['#3b82f6','#10b981','#8b5cf6'][i]+'88',borderColor:['#3b82f6','#10b981','#8b5cf6'][i],borderWidth:1,borderRadius:0,stack:'s',borderSkipped:false}))},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#6b7fa0',font:{size:9},padding:5,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:9}}},y:{grid:{color:'#1a2235'},beginAtZero:true,stacked:true,ticks:{color:'#6b7fa0',font:{size:10}}}}}});
 
   // Tableau mensuel
-  const conumNames=[...new Set(DATA.map(r=>r.conum))].filter(c=>c);
+  const conumNames=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE'));
   let thead=`<thead><tr><th>Mois</th><th>Année</th><th>Total</th><th>Complétion</th>`;
   conumNames.forEach(cn=>{thead+=`<th class="${conumClass(cn)}">${cn.split(' ')[0]}</th>`;});
   thead+=`</tr></thead>`;
@@ -1707,7 +1707,7 @@ function showPreview(pd){
   const dates=records.map(r=>r.date_demande).sort();
   const years=[...new Set(records.map(r=>r.date_demande.slice(0,4)))].sort();
   const months=new Set(records.map(r=>r.date_demande.slice(0,7)));
-  const conums=[...new Set(records.map(r=>r.conum))].filter(c=>c);
+  const conums=[...new Set(records.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE'));
   const cms=[...new Set(records.map(r=>r.cms))].filter(c=>c);
   document.getElementById('pv-total').textContent=records.length;
   document.getElementById('pv-range').textContent=`${dates[0]} → ${dates[dates.length-1]}`;
