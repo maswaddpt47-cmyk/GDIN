@@ -3204,6 +3204,13 @@ function toggleTheme(){
 
 // ── BOOT ──
 (function(){
+  // Restaurer le thème AVANT de créer les charts (cssVar lit les CSS vars au moment du render)
+  try{
+    if(sessionStorage.getItem('gdin_theme')==='light'){
+      document.body.classList.add('light-mode');
+      document.getElementById('btn-theme').textContent='🌑';
+    }
+  }catch(e){}
   initData();initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();renderGlobal();
   // Restaurer l'onglet actif
   try{
