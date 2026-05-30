@@ -512,7 +512,7 @@ body.pres-mode .tbl th{font-size:11px}
   <!-- TERRITOIRE -->
   <div id="panel-territoire" class="panel">
     <div class="frow" style="flex-wrap:wrap;gap:12px;align-items:center">
-      <div id="terr-cms-legend" style="display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--muted)"></div>
+      <div id="terr-cms-legend" style="display:flex;flex-wrap:wrap;gap:8px;font-size:10px;font-weight:600;color:var(--text)"></div>
       <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
         <select id="terr-cms-filter" onchange="renderTerritoire()" style="font-size:11px;padding:4px 8px">
           <option value="">Tous les CMS</option>
@@ -1148,7 +1148,7 @@ function renderEvolution(){
           y:{
             grid:{color:cssVar('--border')},
             beginAtZero:true,
-            ticks:{color:cssVar('--muted')},
+            ticks:{color:cssVar('--text')},
             stacked:isStacked
           }
         }
@@ -1172,7 +1172,7 @@ function renderEvolution(){
       datasets=CMS_MAIN.slice(0,6).map((cms,i)=>({label:cms,data:mKeys.map(k=>data.filter(r=>r.cms===cms&&r.date_demande.startsWith(k)).length),backgroundColor:PALETTE[i]+'88',borderColor:PALETTE[i],borderWidth:1.5,borderRadius:4,borderSkipped:false,type:'bar',stack:'s'}));
     }
     destroyChart('ch-evol');
-    charts['ch-evol']=new Chart(document.getElementById('ch-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:evolModeVal!=='total',labels:{color:cssVar('--text'),font:{size:11,weight:'600'},padding:8,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--muted')}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--muted')},stacked:evolModeVal!=='total'}}}});
+    charts['ch-evol']=new Chart(document.getElementById('ch-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:evolModeVal!=='total',labels:{color:cssVar('--text'),font:{size:11,weight:'600'},padding:8,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text')}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text')},stacked:evolModeVal!=='total'}}}});
   }
 
   const allF=getFiltered();
@@ -1201,7 +1201,7 @@ function renderEvolution(){
         responsive:true,maintainAspectRatio:true,
         interaction:{mode:'index',intersect:false},
         plugins:{
-          legend:{labels:{color:cssVar('--muted'),font:{size:9},padding:5,boxWidth:8}},
+          legend:{labels:{color:cssVar('--text'),font:{size:10,weight:'600'},padding:5,boxWidth:8}},
           tooltip:{callbacks:{
             title:items=>items[0].label,
             label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}`,
@@ -1218,7 +1218,7 @@ function renderEvolution(){
 
   // Types monthly (stacked)
   destroyChart('ch-type-monthly');
-  charts['ch-type-monthly']=new Chart(document.getElementById('ch-type-monthly'),{type:'bar',data:{labels:mAll.map(monthLabel),datasets:TYPE_KEYS.map((t,i)=>({label:t,data:mAll.map(k=>allF.filter(r=>r.date_demande.startsWith(k)&&r.type_action&&r.type_action.includes(t)).length),backgroundColor:['#3b82f6','#10b981','#8b5cf6'][i]+'88',borderColor:['#3b82f6','#10b981','#8b5cf6'][i],borderWidth:1,borderRadius:0,stack:'s',borderSkipped:false}))},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:cssVar('--muted'),font:{size:9},padding:5,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,stacked:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}}}}});
+  charts['ch-type-monthly']=new Chart(document.getElementById('ch-type-monthly'),{type:'bar',data:{labels:mAll.map(monthLabel),datasets:TYPE_KEYS.map((t,i)=>({label:t,data:mAll.map(k=>allF.filter(r=>r.date_demande.startsWith(k)&&r.type_action&&r.type_action.includes(t)).length),backgroundColor:['#3b82f6','#10b981','#8b5cf6'][i]+'88',borderColor:['#3b82f6','#10b981','#8b5cf6'][i],borderWidth:1,borderRadius:0,stack:'s',borderSkipped:false}))},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:cssVar('--text'),font:{size:10,weight:'600'},padding:5,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,stacked:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}}}}});
 
   // Tableau mensuel
   const conumNames=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE'));
@@ -1325,7 +1325,7 @@ function renderCms(){
   makeBarList(document.getElementById('bar-cms-thema'),countThemas(data),'orange');
   const mKeys=[...new Set(getFiltered().map(r=>r.date_demande.slice(0,7)))].sort();
   destroyChart('ch-cms-evol');
-  charts['ch-cms-evol']=new Chart(document.getElementById('ch-cms-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--muted')}}}}});
+  charts['ch-cms-evol']=new Chart(document.getElementById('ch-cms-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text')}}}}});
   const types=countTypes(data);
   destroyChart('ch-cms-types');
   charts['ch-cms-types']=new Chart(document.getElementById('ch-cms-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10}}}}}});
@@ -1362,7 +1362,7 @@ function renderConum(){
   makeBarList(document.getElementById('bar-conum-cms'),count(data,'cms'),'blue');
   const mKeys=[...new Set(allData.map(r=>r.date_demande.slice(0,7)))].sort(),col=conumColor(conum);
   destroyChart('ch-conum-evol');
-  charts['ch-conum-evol']=new Chart(document.getElementById('ch-conum-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:col+'66',borderColor:col,borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--muted')}}}}});
+  charts['ch-conum-evol']=new Chart(document.getElementById('ch-conum-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:col+'66',borderColor:col,borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text')}}}}});
   const types=countTypes(data);
   destroyChart('ch-conum-types');
   charts['ch-conum-types']=new Chart(document.getElementById('ch-conum-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10}}}}}});
@@ -1519,7 +1519,7 @@ function renderRapport(){
     <div class="kpi cyan"><div class="kpi-label">Délai total</div><div class="kpi-value">${hasAct&&moyR2!=null?moyR2+'j':'—'}</div><div class="kpi-sub">orientation→réalisation</div></div>`;
   const mKeys=[...new Set(allData.map(r=>r.date_demande.slice(0,7)))].sort();
   destroyChart('ch-rpt-evol');
-  charts['ch-rpt-evol']=new Chart(document.getElementById('ch-rpt-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--muted')}}}}});
+  charts['ch-rpt-evol']=new Chart(document.getElementById('ch-rpt-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text')}}}}});
   const themas=Object.entries(countThemas(data)).slice(0,8);
   destroyChart('ch-rpt-thema');
   charts['ch-rpt-thema']=new Chart(document.getElementById('ch-rpt-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:11,weight:'600'},padding:8,boxWidth:8,color:cssVar('--text')}}}}});
@@ -2248,7 +2248,7 @@ function renderActions(){
         {label:'En cours',data:months.map(m=>data.filter(r=>r.date===m&&r.etat==='En cours').length),backgroundColor:'rgba(249,115,22,.65)',borderColor:'#f97316',borderWidth:1,stack:'s',borderSkipped:false}
       ]
     },
-    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:cssVar('--text'),font:{size:10},boxWidth:8,padding:6}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,stacked:true,ticks:{color:cssVar('--muted')}}}}
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:cssVar('--text'),font:{size:10},boxWidth:8,padding:6}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,stacked:true,ticks:{color:cssVar('--text')}}}}
   });
 
   // Table by CMS
