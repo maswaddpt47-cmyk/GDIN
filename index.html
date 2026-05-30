@@ -2743,7 +2743,8 @@ function renderHeatmapConum(){
   // Build volume map: conum → year → month(1-12) → count
   const vol={};
   allConums.forEach(cn=>{vol[cn]={};allYears.forEach(yr=>{vol[cn][yr]=Array(12).fill(0);});});
-  allData.forEach(r=>{
+  // Utiliser DATA (toutes données) pour construire vol — pas allData (filtrée)
+  DATA.forEach(r=>{
     if(!vol[r.conum])return;
     const yr=r.date_demande.slice(0,4);
     const mo=parseInt(r.date_demande.slice(5,7))-1;
@@ -2768,20 +2769,21 @@ function renderHeatmapConum(){
   });
   // Afficher seulement les 2 dernières années par défaut
   const displayYears=allYears.slice(-2);
-  let tbl=`<div style="font-size:10px;color:var(--muted);margin-bottom:6px">Nombre d'accompagnements par mois · couleur = intensité relative · scroll → pour voir les années précédentes</div>`;
+  const displayYearsRev=[...allYears].reverse();
+  let tbl=`<div style="font-size:10px;color:var(--muted);margin-bottom:6px">Nombre d'accompagnements par mois · couleur = intensité relative · ← années précédentes à droite</div>`;
   tbl+=`<div style="overflow-x:auto"><table class="heatmap-table"><thead><tr><th></th>`;
-  allYears.forEach(yr=>{
+  displayYearsRev.forEach((yr,yi)=>{
     MONTH_FR.forEach((m,mi)=>{ tbl+=`<th title="${m} ${yr}">${m.slice(0,1)}</th>`; });
-    if(allYears.indexOf(yr)<allYears.length-1)tbl+=`<th style="width:10px"></th>`;
+    if(yi<displayYearsRev.length-1)tbl+=`<th style="width:10px"></th>`;
   });
   tbl+=`</tr></thead><tbody>`;
   sortedConums.forEach(cn=>{
-    const d=allData.filter(r=>r.conum===cn);
-    if(!d.length)return;
+    const hasVol=allYears.some(yr=>vol[cn]&&vol[cn][yr]&&vol[cn][yr].some(v=>v>0));
+    if(!hasVol)return;
     const color=CONUM_COLORS[cn]||'#6b7fa0';
     const shortName=cn.split(' ')[0];
     tbl+=`<tr><td class="hm-label" title="${cn}">${shortName}</td>`;
-    allYears.forEach((yr,yi)=>{
+    displayYearsRev.forEach((yr,yi)=>{
       const vals=vol[cn][yr]||Array(12).fill(0);
       vals.forEach((v,mi)=>{
         const bg=cellColor(v,color);
