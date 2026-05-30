@@ -13,16 +13,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0b0f19;--s1:#111827;--s2:#1a2235;--s3:#202d42;
-  --border:#253047;--border2:#2e3d56;
-  --text:#dde6f5;--muted:#6b7fa0;--dim:#3d4f6b;
-  --blue:#3b82f6;--cyan:#22d3ee;--orange:#f97316;
-  --green:#10b981;--purple:#8b5cf6;--red:#ef4444;--yellow:#eab308;
-}
-body.light-mode{
   --bg:#f4f6fa;--s1:#ffffff;--s2:#eef0f5;--s3:#e4e7ef;
   --border:#d0d5e0;--border2:#bcc3d4;
   --text:#1a2235;--muted:#5a6a85;--dim:#9aa5b8;
+  --blue:#3b82f6;--cyan:#22d3ee;--orange:#f97316;
+  --green:#10b981;--purple:#8b5cf6;--red:#ef4444;--yellow:#eab308;
+}
+body.dark-mode{
+  --bg:#0b0f19;--s1:#111827;--s2:#1a2235;--s3:#202d42;
+  --border:#253047;--border2:#2e3d56;
+  --text:#dde6f5;--muted:#6b7fa0;--dim:#3d4f6b;
 }
 .btn-theme{background:var(--s3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;transition:all .15s;line-height:1;flex-shrink:0}
 .btn-theme:hover{color:var(--text);border-color:var(--blue)}
@@ -3196,21 +3196,23 @@ document.addEventListener('keydown',e=>{
 const _origToggleTheme=window.toggleTheme;
 // Patch toggleTheme pour propager au dr-overlay
 function toggleTheme(){
-  const light=document.body.classList.toggle('light-mode');
-  document.getElementById('btn-theme').textContent=light?'🌑':'🌙';
-  try{sessionStorage.setItem('gdin_theme',light?'light':'dark');}catch(e){}
+  const light=document.body.classList.toggle('dark-mode');
+  document.getElementById('btn-theme').textContent=light?'🌙':'🌑';
+  try{sessionStorage.setItem('gdin_theme',light?'dark':'light');}catch(e){}
   setTimeout(()=>{if(window._leafletMap)window._leafletMap.invalidateSize();refreshAll();},50);
 }
 
 // ── BOOT ──
 (function(){
-  // Restaurer le thème AVANT de créer les charts (cssVar lit les CSS vars au moment du render)
+  // Appliquer le thème sauvegardé
   try{
-    if(sessionStorage.getItem('gdin_theme')==='light'){
-      document.body.classList.add('light-mode');
+    if(sessionStorage.getItem('gdin_theme')==='dark'){
+      document.body.classList.add('dark-mode');
       document.getElementById('btn-theme').textContent='🌑';
     }
   }catch(e){}
+  // Forcer le recalcul CSS AVANT de créer les charts (cssVar doit lire les bonnes vars)
+  void document.body.offsetHeight;
   initData();initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();renderGlobal();
   // Restaurer l'onglet actif
   try{
