@@ -901,7 +901,13 @@ function parseXlsText(text){
 const LS_KEY='gdin_data_v3', LS_META='gdin_meta_v3';
 function saveToStorage(records,meta){
   try{
-    localStorage.setItem(LS_KEY,JSON.stringify(records));
+    const json=JSON.stringify(records);
+    const sizeKb=Math.round(json.length/1024);
+    if(sizeKb>4800){
+      console.warn('[GDIN] Données trop volumineuses ('+sizeKb+'Ko) — session sans persistance');
+      return false;
+    }
+    localStorage.setItem(LS_KEY,json);
     localStorage.setItem(LS_META,JSON.stringify(meta));
     return true;
   }catch(e){
@@ -1692,7 +1698,7 @@ function handleFileSelect(file){
           result=parseXlsText(e.target.result);
         }
         bar.style.width='100%';msg.textContent=`${result.records.length} enregistrements`;
-        setTimeout(()=>{prog.style.display='none';pendingData={records:result.records,filename:file.name,warnings:result.warnings};showPreview(pendingData);},400);
+        setTimeout(()=>{prog.style.display='none';pendingData={records:result.records,filename:file.name,warnings:result.warnings};showPreview(pendingData);confirmImport();},400);
       }catch(err){
         prog.style.display='none';
         document.getElementById('import-error').style.display='block';
@@ -1751,10 +1757,14 @@ function confirmImport(){
   const newRecords=records.filter(r=>!existingKeys.has(makeKey(r)));
   const merged=[...base,...newRecords];
   DATA=merged;dataSource='imported';
-  const years=[...new Set(records.map(r=>r.date_demande.slice(0,4)))].sort();
+  const years=[...new Set(merged.map(r=>r.date_demande.slice(0,4)))].sort(); // toutes les années de merged
   importMeta={filename,count:DATA.length,years,date:new Date().toLocaleDateString('fr-FR')};
   const saved=saveToStorage(merged,importMeta);
-  if(!saved)document.getElementById('pv-warnings').innerHTML+=`<div class="alert-box">⚠ Sauvegarde localStorage échouée. Données en session seulement.</div>`;
+  if(!saved){
+    const sizeKb=Math.round(JSON.stringify(merged).length/1024);
+    document.getElementById('pv-warnings').innerHTML+=`<div class="alert-box" style="background:rgba(239,68,68,.15);border-color:#ef4444;color:var(--text)">⚠ <strong>Données trop volumineuses pour la sauvegarde automatique (${sizeKb} Ko > 4800 Ko).</strong><br>Les ${DATA.length} enregistrements sont disponibles cette session uniquement. Vous devrez réimporter à chaque ouverture.</div>`;
+  }
+
   updateSourceBadge(true,importMeta);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   pendingData=null;document.getElementById('import-preview').style.display='none';document.getElementById('parse-progress-box').style.display='none';
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
