@@ -2637,13 +2637,20 @@ function renderTerritoire(){
 // Lookup coords global (utilisé par diapo rapport et autres)
 function getCoordsGlobal(nom){
   if(!nom)return null;
-  const UP=nom.toUpperCase();
+  const UP=nom.trim().toUpperCase();
   if(COMMUNE_COORDS[nom])return COMMUNE_COORDS[nom];
   if(COMMUNE_COORDS[UP])return COMMUNE_COORDS[UP];
-  const norm=UP.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  // Normalisation complète : accents + tirets/espaces interchangeables + ST→SAINT
+  function normalize(s){
+    return s.toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[-_]/g,' ')
+      .replace(/\bSTE?\b/g,'SAINT')
+      .replace(/\s+/g,' ').trim();
+  }
+  const normInput=normalize(UP);
   for(const [k,v] of Object.entries(COMMUNE_COORDS)){
-    const kn=k.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
-    if(kn===norm)return v;
+    if(normalize(k)===normInput)return v;
   }
   return null;
 }
@@ -3230,19 +3237,27 @@ function drSlideTerritoire(c,data){
       const communes=Object.entries(count(data,'commune')).sort((a,b)=>b[1]-a[1]);
       const maxV=communes[0]?.[1]||1;
       const markers=[];
+      const notFound=[];
       communes.forEach(([nom,n])=>{
         const coords=getCoordsGlobal(nom);
-        if(!coords)return;
-        const r=Math.max(6,Math.sqrt(n/maxV)*28);
-        const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:.75,color:'#fff',weight:1.5});
+        if(!coords){notFound.push(nom);return;}
+        const r=Math.max(7,Math.sqrt(n/maxV)*30);
+        const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:.8,color:'#fff',weight:2});
         circle.bindPopup(`<b>${nom}</b><br>${n} accompagnement${n>1?'s':''}`);
+        circle.bindTooltip(`${nom} (${n})`,{permanent:false,direction:'top'});
         circle._labelTotal=n;
         circle.addTo(map);
         markers.push(circle);
       });
       if(markers.length>0){
         const group=L.featureGroup(markers);
-        map.fitBounds(group.getBounds().pad(0.2));
+        map.fitBounds(group.getBounds().pad(0.25));
+      } else {
+        // Aucune commune géolocalisée — afficher la liste en overlay
+        const msg=document.createElement('div');
+        msg.style.cssText='position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:11px;padding:8px 14px;border-radius:8px;z-index:999;max-width:90%;text-align:center';
+        msg.textContent='Communes non géolocalisées : '+communes.slice(0,8).map(c=>c[0]).join(', ')+(communes.length>8?'…':'');
+        document.getElementById('dr-map').appendChild(msg);
       }
       setTimeout(()=>map.invalidateSize(),150);
     },80);
