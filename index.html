@@ -816,11 +816,11 @@ body.pres-mode .tbl th{font-size:11px}
   <div id="dr-content" style="flex:1;overflow-y:auto;padding:20px 28px 80px"></div>
 
   <!-- Carte territoire — toujours dans le DOM comme la carte principale -->
-  <div id="dr-map-wrap" style="display:none;position:absolute;inset:0;z-index:1;padding:60px 16px 80px;flex-direction:column;gap:12px">
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700">Territoire d'intervention</div>
-    <div id="dr-map-sub" style="font-size:11px;color:var(--muted)"></div>
-    <div style="flex:1;border:1px solid var(--border);border-radius:14px;overflow:hidden;min-height:300px">
-      <div id="dr-map" style="height:100%;min-height:300px;width:100%"></div>
+  <div id="dr-map-wrap" style="display:none;position:absolute;top:52px;left:0;right:0;bottom:0;z-index:1;padding:12px 16px 80px;flex-direction:column;gap:8px">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700">Territoire d'intervention</div>
+    <div id="dr-map-sub" style="font-size:11px;color:var(--muted);margin-bottom:4px"></div>
+    <div style="flex:1;border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative">
+      <div id="dr-map" style="position:absolute;inset:0"></div>
     </div>
   </div>
 
@@ -3513,73 +3513,41 @@ function drSlideTerritoire(c,data){
   document.getElementById('dr-map-wrap').style.display='flex';
 
   function drawDrMap(){
-    const drMapEl=document.getElementById('dr-map');
-    if(!drMapEl)return;
+    const mapEl=document.getElementById('dr-map');
+    if(!mapEl)return;
     if(window._drMap){try{window._drMap.remove();}catch(e){}}
-    drMapEl.innerHTML='';
+    mapEl.innerHTML='';
     const map=L.map('dr-map',{center:[44.35,0.62],zoom:9,zoomControl:true,attributionControl:false});
     window._drMap=map;
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(map);
-    // Double invalidateSize comme la carte principale qui fonctionne
-    setTimeout(function(){map.invalidateSize();setTimeout(function(){map.invalidateSize();},400);},100);
-    {
 
-      const communes=Object.entries(count(data,'commune')).sort((a,b)=>b[1]-a[1]);
-      const maxV=communes[0]?.[1]||1;
+    const communes=Object.entries(count(data,'commune')).sort((a,b)=>b[1]-a[1]);
+    const maxV=communes[0]?.[1]||1;
 
-      function renderMarkers(){
-        // Supprimer anciens markers
-        map.eachLayer(l=>{if(l instanceof L.CircleMarker||l instanceof L.Marker)try{map.removeLayer(l);}catch(e){}});
-        const markers=[];
-        communes.forEach(([nom,n])=>{
-          const coords=getCoordsGlobal(nom);
-          if(!coords)return;
-          const r=Math.max(7,Math.sqrt(n/maxV)*30);
-          const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:0.75,color:'rgba(255,255,255,0.9)',weight:1.5,opacity:1});
-          circle.bindPopup(`<b>${nom}</b><br>${n} accompagnement${n>1?'s':''}`);
-          circle.bindTooltip(`${nom} (${n})`,{permanent:false,direction:'top'});
-          circle._labelTotal=n;
-          circle.addTo(map);
-          markers.push(circle);
-        });
-        if(markers.length>0){
-          try{
-            map.fitBounds(L.featureGroup(markers).getBounds().pad(0.25));
-            setTimeout(()=>map.invalidateSize(),100);
-          }catch(e){}
-        }
-        return markers.length;
-      }
-
-      // Premier rendu
-      const found=renderMarkers();
-
-      // Géocoder les communes manquantes via API
-      const missing=communes.map(([n])=>n).filter(n=>!getCoordsGlobal(n));
-      if(missing.length>0){
-        Promise.all(missing.slice(0,10).map(nom=>
-          fetch(`https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(nom)}&fields=centre&boost=population&limit=1`)
-            .then(r=>r.json())
-            .then(res=>{
-              if(res[0]?.centre?.coordinates){
-                const [lng,lat]=res[0].centre.coordinates;
-                COMMUNE_COORDS[nom.toUpperCase()]=[lat,lng];
-                COMMUNE_COORDS[nom]=[lat,lng];
-              }
-            }).catch(()=>{})
-        )).then(()=>{
-          if(renderMarkers()===0&&found===0){
-            const msg=document.createElement('div');
-            msg.style.cssText='position:absolute;top:8px;left:8px;right:8px;background:rgba(0,0,0,.8);color:#fff;font-size:10px;padding:8px;border-radius:6px;z-index:999';
-            msg.textContent='Communes non localisées : '+communes.slice(0,8).map(c=>c[0]).join(', ');
-            document.getElementById('dr-map')?.appendChild(msg);
-          }
-        });
-      }
+    function placeMarkers(){
+      const placed=[];
+      communes.forEach(([nom,n])=>{
+        const coords=getCoordsGlobal(nom);
+        if(!coords)return;
+        const r=Math.max(7,Math.sqrt(n/maxV)*30);
+        const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:0.75,color:'rgba(255,255,255,0.9)',weight:1.5,opacity:1});
+        circle.bindPopup('<b>'+nom+'</b><br>'+n+' accompagnement'+(n>1?'s':''));
+        circle.addTo(map);
+        placed.push(circle);
+      });
+      return placed;
     }
+
+    // Attendre que la carte soit dimensionnée avant de placer les markers
+    setTimeout(function(){
+      map.invalidateSize();
+      const markers=placeMarkers();
+      if(markers.length>0){
+        try{map.fitBounds(L.featureGroup(markers).getBounds().pad(0.2));}catch(e){}
+      }
+      setTimeout(function(){map.invalidateSize();},300);
+    },200);
   }
-
-
   if(!window._geoApiLoaded){
     fetch('https://geo.api.gouv.fr/departements/47/communes?fields=nom,centre&format=json&geometry=centre')
       .then(r=>r.json())
