@@ -25,7 +25,7 @@ body.light-mode{
   --text:#1a2235;--muted:#5a6a85;--dim:#9aa5b8;
 }
 .chart-legend{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
-.chart-legend .cl-item{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chart-legend .cl-item{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden}
 .chart-legend .cl-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
 .btn-theme{background:var(--s3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;transition:all .15s;line-height:1;flex-shrink:0}
 .btn-theme:hover{color:var(--text);border-color:var(--blue)}
@@ -104,6 +104,13 @@ select:focus{border-color:var(--blue)}
 .tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:var(--s2)}
 .tbl .mono{font-family:'JetBrains Mono',monospace;font-size:11px}
 .tbl .total-row td{font-weight:700;border-top:1px solid var(--border);background:var(--s2)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:0 0 8px 8px}
+@media(max-width:500px){
+  .tbl{font-size:11px}
+  .tbl th,.tbl td{padding:5px 7px}
+  .tbl .col-hide-xs{display:none}
+  .tbl .mono{font-size:10px}
+}
 .badge{display:inline-block;padding:1px 7px;border-radius:12px;font-size:10px;font-weight:600}
 .badge-blue{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.25)}
 .badge-orange{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.2)}
@@ -476,8 +483,8 @@ body.pres-mode .tbl th{font-size:11px}
       <canvas id="ch-cms-yoy" style="max-height:240px"></canvas>
     </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Top orienteurs</div>
-      <table class="tbl"><thead><tr><th>#</th><th>Orienteur</th><th>Demandes</th><th>% CMS</th><th>Conseiller principal</th></tr></thead>
-      <tbody id="tbl-cms-ori"></tbody></table>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Orienteur</th><th>Demandes</th><th class="col-hide-xs">% CMS</th><th class="col-hide-xs">Conseiller principal</th></tr></thead>
+      <tbody id="tbl-cms-ori"></tbody></table></div>
     </div>
   </div>
 
@@ -498,12 +505,16 @@ body.pres-mode .tbl th{font-size:11px}
       <canvas id="ch-conum-yoy" style="max-height:240px"></canvas>
     </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Récap tous conseillers</div>
-      <table class="tbl"><thead><tr><th>Conseiller</th><th>Accompagnements</th><th>Orientations TS</th><th>Thématique principale</th></tr></thead>
-      <tbody id="tbl-conum-all"></tbody></table>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Conseiller</th><th>Accompagnements</th><th class="col-hide-xs">Orientations TS</th><th class="col-hide-xs">Thématique principale</th></tr></thead>
+      <tbody id="tbl-conum-all"></tbody></table></div>
     </div>
     <div class="card g1" id="card-heatmap-conum">
       <div class="card-title"><span class="dot" style="background:var(--yellow)"></span>Charge mensuelle — tous conseillers <span style="font-size:9px;color:var(--dim);font-weight:400;margin-left:6px">intensité par volume</span></div>
       <div class="heatmap-wrap"><div id="heatmap-conum-container"></div></div>
+    </div>
+    <div class="card g1">
+      <div class="card-title"><span class="dot" style="background:var(--purple)"></span>Comparaison conseillers — profil multi-critères <span style="font-size:9px;color:var(--dim);font-weight:400;margin-left:6px">normalisé sur la période</span></div>
+      <canvas id="ch-conum-radar" style="max-height:380px"></canvas>
     </div>
   </div>
 
@@ -515,8 +526,8 @@ body.pres-mode .tbl th{font-size:11px}
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition par thématique (orienteurs actifs)</div><div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap"><div style="flex:0 0 160px;height:160px;position:relative"><canvas id="ch-ori-thema"></canvas></div><div id="leg-ori-thema" class="chart-legend" style="flex:1;min-width:140px"></div></div></div>
     </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Travailleurs sociaux orienteurs</div>
-      <table class="tbl sortable" id="tbl-ori-wrap"><thead><tr><th>Orienteur</th><th>Structure</th><th>Demandes</th><th>Conseiller principal</th><th>Thématique principale</th></tr></thead>
-      <tbody id="tbl-ori"></tbody></table>
+      <div class="tbl-wrap"><table class="tbl sortable" id="tbl-ori-wrap"><thead><tr><th>Orienteur</th><th class="col-hide-xs">Structure</th><th>Demandes</th><th class="col-hide-xs">Conseiller principal</th><th class="col-hide-xs">Thématique principale</th></tr></thead>
+      <tbody id="tbl-ori"></tbody></table></div>
     </div>
   </div>
 
@@ -545,6 +556,10 @@ body.pres-mode .tbl th{font-size:11px}
     <div class="g2" style="margin-top:0">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 communes — volume</div><canvas id="ch-terr-bar" style="max-height:260px"></canvas></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques des communes affichées</div><canvas id="ch-terr-thema" style="max-height:260px"></canvas></div>
+    </div>
+    <div class="card" id="terr-yoy-section" style="display:none">
+      <div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Top 10 communes — comparaison N vs N-1</div>
+      <canvas id="ch-terr-yoy" style="max-height:280px"></canvas>
     </div>
   </div>
 
@@ -1042,12 +1057,12 @@ function renderGlobal(){
   const themas=Object.entries(countThemas(data)).slice(0,9);
   destroyChart('ch-thema');
   charts['ch-thema']=new Chart(document.getElementById('ch-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
-  buildLegend('leg-thema',themas.map(t=>t[0]),PALETTE);
+  buildLegend('leg-thema',themas.map(t=>t[0]),PALETTE,themas.map(t=>t[1]));
 
   const conumData=Object.entries(count(data,'conum'));
   destroyChart('ch-conum');
   charts['ch-conum']=new Chart(document.getElementById('ch-conum'),{type:'doughnut',data:{labels:conumData.map(c=>c[0].split(' ')[0]),datasets:[{data:conumData.map(c=>c[1]),backgroundColor:conumData.map(c=>conumColor(c[0])),borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,data.length)}%)`}}}}});
-  buildLegend('leg-conum',conumData.map(c=>c[0].split(' ')[0]),conumData.map(c=>conumColor(c[0])));
+  buildLegend('leg-conum',conumData.map(c=>c[0].split(' ')[0]),conumData.map(c=>conumColor(c[0])),conumData.map(c=>c[1]));
 
   makeBarList(document.getElementById('bar-cms-global'),Object.fromEntries(Object.entries(count(noDsian,'cms')).slice(0,9)),'blue');
 
@@ -1393,6 +1408,56 @@ function renderConum(){
   destroyChart('ch-conum-types');
   charts['ch-conum-types']=new Chart(document.getElementById('ch-conum-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:tc(),font:{size:10}}}}}});
   buildYoyChart('ch-conum-yoy','conum-yoy-section',data);
+
+  // ── Radar comparaison conseillers ──
+  (function(){
+    const conums=[...new Set(getFiltered().map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE')).sort();
+    const allF=getFiltered();
+    // 5 axes : Volume, Diversité thématique, Diversité structures, Taux complétion, Régularité mensuelle
+    function radarAxes(cn){
+      const d=allF.filter(r=>r.conum===cn);
+      if(!d.length)return null;
+      const vol=d.length;
+      const divThema=Object.keys(countThemas(d)).length;
+      const divCms=new Set(d.map(r=>r.cms)).size;
+      const complet=d.filter(r=>r.date_action).length/d.length;
+      // Régularité = nb mois actifs / nb mois total période
+      const months=new Set(d.map(r=>r.date_demande.slice(0,7)));
+      const allMonths=new Set(allF.map(r=>r.date_demande.slice(0,7)));
+      const reg=months.size/Math.max(allMonths.size,1);
+      return{cn,vol,divThema,divCms,complet,reg};
+    }
+    const raw=conums.map(radarAxes).filter(Boolean);
+    if(raw.length<2){destroyChart('ch-conum-radar');return;}
+    // Normaliser chaque axe sur [0,1] puis ×100
+    function norm(arr,key){const vals=arr.map(r=>r[key]);const mx=Math.max(...vals)||1;return arr.map(r=>Math.round(r[key]/mx*100));}
+    const nVol=norm(raw,'vol'),nDT=norm(raw,'divThema'),nDC=norm(raw,'divCms'),nCo=norm(raw,'complet'),nReg=norm(raw,'reg');
+    const RADAR_LABELS=['Volume','Thématiques','Structures','Complétion','Régularité'];
+    const RADAR_COLORS=['#3b82f6','#10b981','#f97316','#8b5cf6','#22d3ee','#ef4444','#eab308'];
+    const datasets=raw.map((r,i)=>({
+      label:r.cn.split(' ')[0],
+      data:[nVol[i],nDT[i],nDC[i],nCo[i],nReg[i]],
+      backgroundColor:RADAR_COLORS[i%RADAR_COLORS.length]+'22',
+      borderColor:RADAR_COLORS[i%RADAR_COLORS.length],
+      borderWidth:2,pointRadius:3,pointBackgroundColor:RADAR_COLORS[i%RADAR_COLORS.length]
+    }));
+    destroyChart('ch-conum-radar');
+    charts['ch-conum-radar']=new Chart(document.getElementById('ch-conum-radar'),{
+      type:'radar',
+      data:{labels:RADAR_LABELS,datasets},
+      options:{responsive:true,maintainAspectRatio:true,
+        plugins:{legend:{labels:{color:tc(),font:{size:11,weight:'600'},padding:12,boxWidth:10}}},
+        scales:{r:{
+          grid:{color:tcBorder()},
+          angleLines:{color:tcBorder()},
+          pointLabels:{color:tc(),font:{size:11,weight:'600'}},
+          ticks:{display:false},
+          min:0,max:100,beginAtZero:true
+        }}
+      }
+    });
+  })();
+
   const allConums=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE')).sort();
   let rows='';
   allConums.forEach(cn=>{
@@ -1474,7 +1539,7 @@ function renderOrienteurs(){
       }
     }
   });
-  buildLegend('leg-ori-thema',themaEntries.map(t=>t[0]),PALETTE);
+  buildLegend('leg-ori-thema',themaEntries.map(t=>t[0]),PALETTE,themaEntries.map(t=>t[1]));
 
   // ── Tableau ──
   let rows='';
@@ -1552,7 +1617,7 @@ function renderRapport(){
   const themas=Object.entries(countThemas(data)).slice(0,8);
   destroyChart('ch-rpt-thema');
   charts['ch-rpt-thema']=new Chart(document.getElementById('ch-rpt-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
-  buildLegend('leg-rpt-thema',themas.map(t=>t[0]),PALETTE);
+  buildLegend('leg-rpt-thema',themas.map(t=>t[0]),PALETTE,themas.map(t=>t[1]));
   makeBarList(document.getElementById('bar-rpt-ori'),count(data,'orienteur'),'green');
   const top5cms=Object.entries(count(dataConum,'cms')).slice(0,5);
   destroyChart('ch-rpt-comp');
@@ -2763,6 +2828,36 @@ function getCoordsGlobal(nom){
         tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,topCommData.length)}%)`}}}
     }
   });
+
+  // N vs N-1 par commune (top 10)
+  const terrYears=[...new Set(dataFiltered.map(r=>r.date_demande.slice(0,4)))].sort();
+  const terrYoySection=document.getElementById('terr-yoy-section');
+  if(terrYears.length>=2 && terrYoySection){
+    terrYoySection.style.display='';
+    const top10=Object.entries(commCount).sort((a,b)=>b[1]-a[1]).slice(0,10).map(c=>c[0]);
+    const yoyDs=terrYears.map(yr=>{
+      const col=yearColor(yr);
+      return{
+        label:yr,
+        data:top10.map(c=>dataFiltered.filter(r=>r.commune&&r.commune.trim().toUpperCase()===c&&r.date_demande.startsWith(yr)).length),
+        backgroundColor:col+'55',borderColor:col,borderWidth:2,borderRadius:3,borderSkipped:false
+      };
+    });
+    destroyChart('ch-terr-yoy');
+    charts['ch-terr-yoy']=new Chart(document.getElementById('ch-terr-yoy'),{
+      type:'bar',
+      data:{labels:top10.map(c=>c.charAt(0)+c.slice(1).toLowerCase()),datasets:yoyDs},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:tc(),font:{size:11,weight:'600'},padding:10,boxWidth:10}}},
+        scales:{
+          x:{grid:{display:false},ticks:{color:tc(),font:{size:9},maxRotation:35}},
+          y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc()}}
+        }
+      }
+    });
+  } else if(terrYoySection){
+    terrYoySection.style.display='none';
+  }
 }
 
 
@@ -2857,10 +2952,14 @@ function tc(){return document.body.classList.contains('light-mode')?'#1a2235':'#
 function tc2(){return document.body.classList.contains('light-mode')?'#5a6a85':'#8a9ab8';}
 function tcBorder(){return document.body.classList.contains('light-mode')?'#d0d5e0':'#253047';}
 
-function buildLegend(elId, labels, colors){
+function buildLegend(elId, labels, colors, values){
   const el=document.getElementById(elId);
   if(!el)return;
-  el.innerHTML=labels.map((l,i)=>`<div class="cl-item"><span class="cl-dot" style="background:${colors[i%colors.length]}"></span><span style="overflow:hidden;text-overflow:ellipsis">${l}</span></div>`).join('');
+  const total=values?values.reduce((a,b)=>a+b,0):0;
+  el.innerHTML=labels.map((l,i)=>{
+    const pctStr=values&&total>0?` <span style="opacity:.6;font-size:9px">${Math.round(values[i]/total*100)}%</span>`:'';
+    return `<div class="cl-item"><span class="cl-dot" style="background:${colors[i%colors.length]}"></span><span style="overflow:hidden;text-overflow:ellipsis;flex:1">${l}</span>${pctStr}</div>`;
+  }).join('');
 }
 
 // Graphe N vs N-1 réutilisable
