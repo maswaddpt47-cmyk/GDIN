@@ -13,17 +13,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4f6fa;--s1:#ffffff;--s2:#eef0f5;--s3:#e4e7ef;
-  --border:#d0d5e0;--border2:#bcc3d4;
-  --text:#1a2235;--muted:#5a6a85;--dim:#9aa5b8;
-  --blue:#3b82f6;--cyan:#22d3ee;--orange:#f97316;
-  --green:#10b981;--purple:#8b5cf6;--red:#ef4444;--yellow:#eab308;
-}
-body.dark-mode{
   --bg:#0b0f19;--s1:#111827;--s2:#1a2235;--s3:#202d42;
   --border:#253047;--border2:#2e3d56;
   --text:#dde6f5;--muted:#6b7fa0;--dim:#3d4f6b;
+  --blue:#3b82f6;--cyan:#22d3ee;--orange:#f97316;
+  --green:#10b981;--purple:#8b5cf6;--red:#ef4444;--yellow:#eab308;
 }
+body.light-mode{
+  --bg:#f4f6fa;--s1:#ffffff;--s2:#eef0f5;--s3:#e4e7ef;
+  --border:#d0d5e0;--border2:#bcc3d4;
+  --text:#1a2235;--muted:#5a6a85;--dim:#9aa5b8;
+}
+.chart-legend{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.chart-legend .cl-item{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:3px 7px;font-size:10px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chart-legend .cl-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
 .btn-theme{background:var(--s3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:13px;cursor:pointer;transition:all .15s;line-height:1;flex-shrink:0}
 .btn-theme:hover{color:var(--text);border-color:var(--blue)}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -396,8 +399,8 @@ body.pres-mode .tbl th{font-size:11px}
   <div id="panel-global" class="panel active">
   <div id="kpi-global" class="g5"></div>
     <div class="g2">
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Thématiques</div><canvas id="ch-thema"></canvas></div>
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition conseillers</div><canvas id="ch-conum"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Thématiques</div><div style="display:flex;align-items:center;gap:12px"><canvas id="ch-thema" style="flex:0 0 auto;max-width:180px"></canvas><div id="leg-thema" class="chart-legend"></div></div></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition conseillers</div><div style="display:flex;align-items:center;gap:12px"><canvas id="ch-conum" style="flex:0 0 auto;max-width:180px"></canvas><div id="leg-conum" class="chart-legend"></div></div></div>
     </div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Accompagnements par CMS (hors DSIAN)</div><div id="bar-cms-global" class="bar-list"></div></div>
@@ -501,7 +504,7 @@ body.pres-mode .tbl th{font-size:11px}
     <div class="frow"><label>CMS :</label><select id="sel-ori-cms" onchange="renderOrienteurs()"><option value="">Tous</option></select></div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 orienteurs — volume de demandes</div><canvas id="ch-ori-bar" style="max-height:320px"></canvas></div>
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition par thématique (orienteurs actifs)</div><canvas id="ch-ori-thema" style="max-height:320px"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition par thématique (orienteurs actifs)</div><div style="display:flex;align-items:center;gap:12px"><canvas id="ch-ori-thema" style="flex:0 0 auto;max-width:200px;max-height:320px"></canvas><div id="leg-ori-thema" class="chart-legend"></div></div></div>
     </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Travailleurs sociaux orienteurs</div>
       <table class="tbl sortable" id="tbl-ori-wrap"><thead><tr><th>Orienteur</th><th>Structure</th><th>Demandes</th><th>Conseiller principal</th><th>Thématique principale</th></tr></thead>
@@ -559,7 +562,7 @@ body.pres-mode .tbl th{font-size:11px}
       <div id="kpi-rpt" class="g5"></div>
       <div class="g2">
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Évolution mensuelle</div><canvas id="ch-rpt-evol"></canvas></div>
-        <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques</div><canvas id="ch-rpt-thema"></canvas></div>
+        <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques</div><div style="display:flex;align-items:center;gap:12px"><canvas id="ch-rpt-thema" style="flex:0 0 auto;max-width:180px"></canvas><div id="leg-rpt-thema" class="chart-legend"></div></div></div>
       </div>
       <div class="g2">
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Orienteurs actifs dans ce CMS</div><div id="bar-rpt-ori" class="bar-list"></div></div>
@@ -1020,17 +1023,19 @@ function renderGlobal(){
 
   const themas=Object.entries(countThemas(data)).slice(0,9);
   destroyChart('ch-thema');
-  charts['ch-thema']=new Chart(document.getElementById('ch-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:11,weight:'600'},padding:8,boxWidth:8,color:cssVar('--text')}}}}});
+  charts['ch-thema']=new Chart(document.getElementById('ch-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}}}});
+  buildLegend('leg-thema',themas.map(t=>t[0]),PALETTE);
 
   const conumData=Object.entries(count(data,'conum'));
   destroyChart('ch-conum');
-  charts['ch-conum']=new Chart(document.getElementById('ch-conum'),{type:'doughnut',data:{labels:conumData.map(c=>c[0].split(' ')[0]),datasets:[{data:conumData.map(c=>c[1]),backgroundColor:conumData.map(c=>conumColor(c[0])),borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:11,weight:'600'},padding:8,boxWidth:8,color:cssVar('--text')}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,data.length)}%)`}}}}});
+  charts['ch-conum']=new Chart(document.getElementById('ch-conum'),{type:'doughnut',data:{labels:conumData.map(c=>c[0].split(' ')[0]),datasets:[{data:conumData.map(c=>c[1]),backgroundColor:conumData.map(c=>conumColor(c[0])),borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,data.length)}%)`}}}}});
+  buildLegend('leg-conum',conumData.map(c=>c[0].split(' ')[0]),conumData.map(c=>conumColor(c[0])));
 
   makeBarList(document.getElementById('bar-cms-global'),Object.fromEntries(Object.entries(count(noDsian,'cms')).slice(0,9)),'blue');
 
   const types=countTypes(data);
   destroyChart('ch-types');
-  charts['ch-types']=new Chart(document.getElementById('ch-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:11}}}}}});
+  charts['ch-types']=new Chart(document.getElementById('ch-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:tc(),font:{size:11}}}}}});
 }
 
 // ÉVOLUTION
@@ -1130,7 +1135,7 @@ function renderEvolution(){
         plugins:{
           legend:{
             display:evolModeVal!=='total',
-            labels:{color:cssVar('--text'),font:{size:9},boxWidth:8,padding:5}
+            labels:{color:tc(),font:{size:9},boxWidth:8,padding:5}
           },
           tooltip:{
             callbacks:{
@@ -1142,13 +1147,13 @@ function renderEvolution(){
         scales:{
           x:{
             grid:{display:false},
-            ticks:{color:cssVar('--text'),font:{size:11}},
+            ticks:{color:tc(),font:{size:11}},
             stacked:isStacked
           },
           y:{
-            grid:{color:cssVar('--border')},
+            grid:{color:tcBorder()},
             beginAtZero:true,
-            ticks:{color:cssVar('--text')},
+            ticks:{color:tc()},
             stacked:isStacked
           }
         }
@@ -1172,7 +1177,7 @@ function renderEvolution(){
       datasets=CMS_MAIN.slice(0,6).map((cms,i)=>({label:cms,data:mKeys.map(k=>data.filter(r=>r.cms===cms&&r.date_demande.startsWith(k)).length),backgroundColor:PALETTE[i]+'88',borderColor:PALETTE[i],borderWidth:1.5,borderRadius:4,borderSkipped:false,type:'bar',stack:'s'}));
     }
     destroyChart('ch-evol');
-    charts['ch-evol']=new Chart(document.getElementById('ch-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:evolModeVal!=='total',labels:{color:cssVar('--text'),font:{size:11,weight:'600'},padding:8,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text')}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text')},stacked:evolModeVal!=='total'}}}});
+    charts['ch-evol']=new Chart(document.getElementById('ch-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:evolModeVal!=='total',labels:{color:tc(),font:{size:11,weight:'600'},padding:8,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:tc()}},y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc()},stacked:evolModeVal!=='total'}}}});
   }
 
   const allF=getFiltered();
@@ -1201,7 +1206,7 @@ function renderEvolution(){
         responsive:true,maintainAspectRatio:true,
         interaction:{mode:'index',intersect:false},
         plugins:{
-          legend:{labels:{color:cssVar('--text'),font:{size:10,weight:'600'},padding:5,boxWidth:8}},
+          legend:{labels:{color:tc(),font:{size:10,weight:'600'},padding:5,boxWidth:8}},
           tooltip:{callbacks:{
             title:items=>items[0].label,
             label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}`,
@@ -1209,8 +1214,8 @@ function renderEvolution(){
           }}
         },
         scales:{
-          x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},
-          y:{grid:{color:cssVar('--border')},beginAtZero:true,stacked:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}}
+          x:{grid:{display:false},ticks:{color:tc(),font:{size:9}}},
+          y:{grid:{color:tcBorder()},beginAtZero:true,stacked:true,ticks:{color:tc(),font:{size:10,weight:'500'}}}
         }
       }
     });
@@ -1218,7 +1223,7 @@ function renderEvolution(){
 
   // Types monthly (stacked)
   destroyChart('ch-type-monthly');
-  charts['ch-type-monthly']=new Chart(document.getElementById('ch-type-monthly'),{type:'bar',data:{labels:mAll.map(monthLabel),datasets:TYPE_KEYS.map((t,i)=>({label:t,data:mAll.map(k=>allF.filter(r=>r.date_demande.startsWith(k)&&r.type_action&&r.type_action.includes(t)).length),backgroundColor:['#3b82f6','#10b981','#8b5cf6'][i]+'88',borderColor:['#3b82f6','#10b981','#8b5cf6'][i],borderWidth:1,borderRadius:0,stack:'s',borderSkipped:false}))},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:cssVar('--text'),font:{size:10,weight:'600'},padding:5,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,stacked:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}}}}});
+  charts['ch-type-monthly']=new Chart(document.getElementById('ch-type-monthly'),{type:'bar',data:{labels:mAll.map(monthLabel),datasets:TYPE_KEYS.map((t,i)=>({label:t,data:mAll.map(k=>allF.filter(r=>r.date_demande.startsWith(k)&&r.type_action&&r.type_action.includes(t)).length),backgroundColor:['#3b82f6','#10b981','#8b5cf6'][i]+'88',borderColor:['#3b82f6','#10b981','#8b5cf6'][i],borderWidth:1,borderRadius:0,stack:'s',borderSkipped:false}))},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:tc(),font:{size:10,weight:'600'},padding:5,boxWidth:8}}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:9}}},y:{grid:{color:tcBorder()},beginAtZero:true,stacked:true,ticks:{color:tc(),font:{size:10,weight:'500'}}}}}});
 
   // Tableau mensuel
   const conumNames=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE'));
@@ -1325,10 +1330,10 @@ function renderCms(){
   makeBarList(document.getElementById('bar-cms-thema'),countThemas(data),'orange');
   const mKeys=[...new Set(getFiltered().map(r=>r.date_demande.slice(0,7)))].sort();
   destroyChart('ch-cms-evol');
-  charts['ch-cms-evol']=new Chart(document.getElementById('ch-cms-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text')}}}}});
+  charts['ch-cms-evol']=new Chart(document.getElementById('ch-cms-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc()}}}}});
   const types=countTypes(data);
   destroyChart('ch-cms-types');
-  charts['ch-cms-types']=new Chart(document.getElementById('ch-cms-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10}}}}}});
+  charts['ch-cms-types']=new Chart(document.getElementById('ch-cms-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:tc(),font:{size:10}}}}}});
   let rows='';
   Object.entries(count(data,'orienteur')).slice(0,15).forEach(([name,n],i)=>{
     const od=data.filter(r=>r.orienteur===name),topCN2=(Object.keys(count(od,'conum'))[0]||'—');
@@ -1362,10 +1367,10 @@ function renderConum(){
   makeBarList(document.getElementById('bar-conum-cms'),count(data,'cms'),'blue');
   const mKeys=[...new Set(allData.map(r=>r.date_demande.slice(0,7)))].sort(),col=conumColor(conum);
   destroyChart('ch-conum-evol');
-  charts['ch-conum-evol']=new Chart(document.getElementById('ch-conum-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:col+'66',borderColor:col,borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text')}}}}});
+  charts['ch-conum-evol']=new Chart(document.getElementById('ch-conum-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:col+'66',borderColor:col,borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc()}}}}});
   const types=countTypes(data);
   destroyChart('ch-conum-types');
-  charts['ch-conum-types']=new Chart(document.getElementById('ch-conum-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10}}}}}});
+  charts['ch-conum-types']=new Chart(document.getElementById('ch-conum-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:tc(),font:{size:10}}}}}});
   const allConums=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE')).sort();
   let rows='';
   allConums.forEach(cn=>{
@@ -1423,8 +1428,8 @@ function renderOrienteurs(){
         }}
       },
       scales:{
-        x:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},
-        y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10},autoSkip:false}}
+        x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},
+        y:{grid:{display:false},ticks:{color:tc(),font:{size:10},autoSkip:false}}
       }
     }
   });
@@ -1442,11 +1447,12 @@ function renderOrienteurs(){
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{position:'right',labels:{color:cssVar('--text'),font:{size:11,weight:'600'},padding:8,boxWidth:8}},
+        legend:{display:false},
         tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,data.length)}%)`}}
       }
     }
   });
+  buildLegend('leg-ori-thema',themaEntries.map(t=>t[0]),PALETTE);
 
   // ── Tableau ──
   let rows='';
@@ -1519,14 +1525,15 @@ function renderRapport(){
     <div class="kpi cyan"><div class="kpi-label">Délai total</div><div class="kpi-value">${hasAct&&moyR2!=null?moyR2+'j':'—'}</div><div class="kpi-sub">orientation→réalisation</div></div>`;
   const mKeys=[...new Set(allData.map(r=>r.date_demande.slice(0,7)))].sort();
   destroyChart('ch-rpt-evol');
-  charts['ch-rpt-evol']=new Chart(document.getElementById('ch-rpt-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text')}}}}});
+  charts['ch-rpt-evol']=new Chart(document.getElementById('ch-rpt-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc()}}}}});
   const themas=Object.entries(countThemas(data)).slice(0,8);
   destroyChart('ch-rpt-thema');
-  charts['ch-rpt-thema']=new Chart(document.getElementById('ch-rpt-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:11,weight:'600'},padding:8,boxWidth:8,color:cssVar('--text')}}}}});
+  charts['ch-rpt-thema']=new Chart(document.getElementById('ch-rpt-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}}}});
+  buildLegend('leg-rpt-thema',themas.map(t=>t[0]),PALETTE);
   makeBarList(document.getElementById('bar-rpt-ori'),count(data,'orienteur'),'green');
   const top5cms=Object.entries(count(dataConum,'cms')).slice(0,5);
   destroyChart('ch-rpt-comp');
-  charts['ch-rpt-comp']=new Chart(document.getElementById('ch-rpt-comp'),{type:'bar',data:{labels:top5cms.map(([c])=>c.replace('Centre Médico-Social ','CMS ').replace('Centre Médico-Social de ','CMS ')),datasets:[{data:top5cms.map(([,v])=>v),backgroundColor:top5cms.map(([c])=>c===cms?'rgba(59,130,246,.7)':'rgba(59,130,246,.2)'),borderColor:top5cms.map(([c])=>c===cms?'#3b82f6':'#253047'),borderRadius:5,borderSkipped:false,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10}}}}}});
+  charts['ch-rpt-comp']=new Chart(document.getElementById('ch-rpt-comp'),{type:'bar',data:{labels:top5cms.map(([c])=>c.replace('Centre Médico-Social ','CMS ').replace('Centre Médico-Social de ','CMS ')),datasets:[{data:top5cms.map(([,v])=>v),backgroundColor:top5cms.map(([c])=>c===cms?'rgba(59,130,246,.7)':'rgba(59,130,246,.2)'),borderColor:top5cms.map(([c])=>c===cms?'#3b82f6':'#253047'),borderRadius:5,borderSkipped:false,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:tc(),font:{size:10}}}}}});
   // ── États actions pour ce conum × CMS ──
   const actSec=document.getElementById('rpt-actions-section');
   const actMiss=document.getElementById('rpt-actions-missing');
@@ -1546,7 +1553,7 @@ function renderRapport(){
     charts['ch-rpt-act-donut']=new Chart(document.getElementById('ch-rpt-act-donut'),{
       type:'doughnut',
       data:{labels:['Réalisée','Non réalisée','En cours'],datasets:[{data:[aReal,aNon,aEnc],backgroundColor:['#10b981','#ef4444','#f97316'],borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},
-      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{color:cssVar('--text'),font:{size:11,weight:'600'},padding:8,boxWidth:8}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,aTot)}%)`}}}}
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{color:tc(),font:{size:11,weight:'600'},padding:8,boxWidth:8}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,aTot)}%)`}}}}
     });
 
     // Monthly non réalisés
@@ -1558,7 +1565,7 @@ function renderRapport(){
         {label:'Non réalisée',data:mKeys.map(m=>actData.filter(r=>r.date&&r.date.startsWith(m.slice(0,7))&&r.etat==='Non réalisée').length),backgroundColor:'rgba(239,68,68,.55)',borderColor:'#ef4444',borderWidth:1,stack:'s',borderSkipped:false,borderRadius:3},
         {label:'Réalisée',data:mKeys.map(m=>actData.filter(r=>r.date&&r.date.startsWith(m.slice(0,7))&&r.etat==='Réalisée').length),backgroundColor:'rgba(16,185,129,.45)',borderColor:'#10b981',borderWidth:1,stack:'s',borderSkipped:false,borderRadius:0}
       ]},
-      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:cssVar('--text'),font:{size:9},boxWidth:7,padding:5}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,stacked:true,ticks:{color:cssVar('--text'),font:{size:9}}}}}
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:tc(),font:{size:9},boxWidth:7,padding:5}}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:9}}},y:{grid:{color:tcBorder()},beginAtZero:true,stacked:true,ticks:{color:tc(),font:{size:9}}}}}
     });
 
     // YoY non réalisés par mois calendaire
@@ -1572,7 +1579,7 @@ function renderRapport(){
         actData.filter(r=>r.year===yr&&r.etat==='Non réalisée').forEach(r=>{if(r.date){const m=parseInt(r.date.slice(5,7))-1;if(m>=0)vals[m]++;}});
         return{label:yr,data:vals,backgroundColor:col+'66',borderColor:col,borderWidth:1.5,borderRadius:3,borderSkipped:false};
       })},
-      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:cssVar('--text'),font:{size:9},boxWidth:7,padding:5}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:9}}}}}
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:tc(),font:{size:9},boxWidth:7,padding:5}}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:9}}},y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:9}}}}}
     });
 
     // Detail table
@@ -2232,7 +2239,7 @@ function renderActions(){
       labels:['Réalisée','Non réalisée','En cours'],
       datasets:[{data:[real,nonReal,encours],backgroundColor:['#10b981','#ef4444','#f97316'],borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]
     },
-    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{color:cssVar('--text'),font:{size:11,weight:'600'},padding:10,boxWidth:10}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,total)}%)`}}}}
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{color:tc(),font:{size:11,weight:'600'},padding:10,boxWidth:10}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,total)}%)`}}}}
   });
 
   // Monthly stacked bar
@@ -2248,7 +2255,7 @@ function renderActions(){
         {label:'En cours',data:months.map(m=>data.filter(r=>r.date===m&&r.etat==='En cours').length),backgroundColor:'rgba(249,115,22,.65)',borderColor:'#f97316',borderWidth:1,stack:'s',borderSkipped:false}
       ]
     },
-    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:cssVar('--text'),font:{size:10},boxWidth:8,padding:6}}},scales:{x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:9}}},y:{grid:{color:cssVar('--border')},beginAtZero:true,stacked:true,ticks:{color:cssVar('--text')}}}}
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:tc(),font:{size:10},boxWidth:8,padding:6}}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:9}}},y:{grid:{color:tcBorder()},beginAtZero:true,stacked:true,ticks:{color:tc()}}}}
   });
 
   // Table by CMS
@@ -2367,15 +2374,15 @@ function renderActYoY(){
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{labels:{color:cssVar('--text'),font:{size:11},boxWidth:10,padding:8}},
+        legend:{labels:{color:tc(),font:{size:11},boxWidth:10,padding:8}},
         tooltip:{callbacks:{
           title:items=>`${MONTH_FR[items[0].dataIndex]} — Non réalisés`,
           label:ctx=>`${ctx.dataset.label} : ${ctx.parsed.y}`
         }}
       },
       scales:{
-        x:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:11}}},
-        y:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}}
+        x:{grid:{display:false},ticks:{color:tc(),font:{size:11}}},
+        y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}}
       }
     }
   });
@@ -2712,8 +2719,8 @@ function getCoordsGlobal(nom){
         return[`${ctx.parsed.x} demandes`,`${Math.round(done/tot*100)}% complétées`];
       }}}},
       scales:{
-        x:{grid:{color:cssVar('--border')},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},
-        y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10},autoSkip:false}}
+        x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},
+        y:{grid:{display:false},ticks:{color:tc(),font:{size:10},autoSkip:false}}
       }
     }
   });
@@ -2725,7 +2732,7 @@ function getCoordsGlobal(nom){
     type:'doughnut',
     data:{labels:thEntries.map(t=>t[0]),datasets:[{data:thEntries.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'right',labels:{color:cssVar('--text'),font:{size:11,weight:'600'},padding:6,boxWidth:8}},
+      plugins:{legend:{position:'right',labels:{color:tc(),font:{size:11,weight:'600'},padding:6,boxWidth:8}},
         tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,topCommData.length)}%)`}}}
     }
   });
@@ -2817,6 +2824,17 @@ function buildAnomalyReport(records, rawLines){
 
 // ── Helper : résoudre les CSS vars pour Chart.js ──
 function cssVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+// Retourne la couleur exacte selon le thème actif — contourne le problème CSS vars + Chart.js
+function tc(){return document.body.classList.contains('light-mode')?'#1a2235':'#dde6f5';}
+function tc2(){return document.body.classList.contains('light-mode')?'#5a6a85':'#8a9ab8';}
+function tcBorder(){return document.body.classList.contains('light-mode')?'#d0d5e0':'#253047';}
+
+function buildLegend(elId, labels, colors){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML=labels.map((l,i)=>`<div class="cl-item"><span class="cl-dot" style="background:${colors[i%colors.length]}"></span><span style="overflow:hidden;text-overflow:ellipsis">${l}</span></div>`).join('');
+}
 
 // ════════════════════════════════════════════
 // DIAPO RAPPORT
@@ -2980,9 +2998,9 @@ function drSlideEvol(c,data,palette){
     type: years.length===1?'bar':'line',
     data:{labels:allMonths,datasets:years.length===1?[{...datasets[0],type:'bar',backgroundColor:palette[0]+'55',borderRadius:6,borderSkipped:false}]:datasets},
     options:{responsive:true,maintainAspectRatio:true,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:cssVar('--text'),font:{size:11},boxWidth:10,padding:12}}},
-      scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{color:cssVar('--text'),font:{size:11}}},
-              y:{grid:{color:'rgba(128,128,128,.1)'},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:11}}}}}
+      plugins:{legend:{labels:{color:tc(),font:{size:11},boxWidth:10,padding:12}}},
+      scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{color:tc(),font:{size:11}}},
+              y:{grid:{color:'rgba(128,128,128,.1)'},beginAtZero:true,ticks:{color:tc(),font:{size:11}}}}}
   });
 }
 
@@ -3007,15 +3025,15 @@ function drSlideThemas(c,data,palette){
     type:'doughnut',
     data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:palette,borderWidth:3,borderColor:cssVar('--s1'),hoverOffset:8}]},
     options:{responsive:true,maintainAspectRatio:true,cutout:'60%',
-      plugins:{legend:{position:'bottom',labels:{color:cssVar('--text'),font:{size:10},padding:10,boxWidth:10}}}}
+      plugins:{legend:{position:'bottom',labels:{color:tc(),font:{size:10},padding:10,boxWidth:10}}}}
   });
   drCharts['thema-bar']=new Chart(document.getElementById('dr-ch-thema-bar'),{
     type:'bar',
     data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:palette,borderRadius:6,borderSkipped:false}]},
     options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',
       plugins:{legend:{display:false}},
-      scales:{x:{grid:{color:'rgba(128,128,128,.1)'},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:10,weight:'500'}}},
-              y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:10}}}}}
+      scales:{x:{grid:{color:'rgba(128,128,128,.1)'},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},
+              y:{grid:{display:false},ticks:{color:tc(),font:{size:10}}}}}
   });
 }
 
@@ -3036,8 +3054,8 @@ function drSlideOrienteurs(c,data,palette){
     data:{labels:oriData.map(([n])=>n),datasets:[{data:oriData.map(([,v])=>v),backgroundColor:oriData.map((_,i)=>palette[i%palette.length]+'99'),borderColor:oriData.map((_,i)=>palette[i%palette.length]),borderWidth:1.5,borderRadius:6,borderSkipped:false}]},
     options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',
       plugins:{legend:{display:false}},
-      scales:{x:{grid:{color:'rgba(128,128,128,.1)'},beginAtZero:true,ticks:{color:cssVar('--text'),font:{size:11}}},
-              y:{grid:{display:false},ticks:{color:cssVar('--text'),font:{size:11},maxTicksLimit:12}}}}
+      scales:{x:{grid:{color:'rgba(128,128,128,.1)'},beginAtZero:true,ticks:{color:tc(),font:{size:11}}},
+              y:{grid:{display:false},ticks:{color:tc(),font:{size:11},maxTicksLimit:12}}}}
   });
 }
 
@@ -3196,9 +3214,9 @@ document.addEventListener('keydown',e=>{
 const _origToggleTheme=window.toggleTheme;
 // Patch toggleTheme pour propager au dr-overlay
 function toggleTheme(){
-  const light=document.body.classList.toggle('dark-mode');
-  document.getElementById('btn-theme').textContent=light?'🌙':'🌑';
-  try{sessionStorage.setItem('gdin_theme',light?'dark':'light');}catch(e){}
+  const light=document.body.classList.toggle('light-mode');
+  document.getElementById('btn-theme').textContent=light?'🌑':'🌙';
+  try{sessionStorage.setItem('gdin_theme',light?'light':'dark');}catch(e){}
   setTimeout(()=>{if(window._leafletMap)window._leafletMap.invalidateSize();refreshAll();},50);
 }
 
@@ -3206,8 +3224,8 @@ function toggleTheme(){
 (function(){
   // Appliquer le thème sauvegardé
   try{
-    if(sessionStorage.getItem('gdin_theme')==='dark'){
-      document.body.classList.add('dark-mode');
+    if(sessionStorage.getItem('gdin_theme')==='light'){
+      document.body.classList.add('light-mode');
       document.getElementById('btn-theme').textContent='🌑';
     }
   }catch(e){}
