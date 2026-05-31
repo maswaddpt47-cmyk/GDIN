@@ -3485,18 +3485,45 @@ function drSlideTerritoire(c,data){
         circle.addTo(map);
         markers.push(circle);
       });
+      console.log('[GDIN] Communes trouvées:',markers.length,'/ Non trouvées:',notFound.slice(0,10));
+      if(notFound.length)console.log('[GDIN] Non géolocalisées (brut):',notFound.slice(0,20));
       if(markers.length>0){
         const group=L.featureGroup(markers);
         map.fitBounds(group.getBounds().pad(0.25));
       } else {
-        // Aucune commune géolocalisée — afficher la liste en overlay
         const msg=document.createElement('div');
-        msg.style.cssText='position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;font-size:11px;padding:8px 14px;border-radius:8px;z-index:999;max-width:90%;text-align:center';
-        msg.textContent='Communes non géolocalisées : '+communes.slice(0,8).map(c=>c[0]).join(', ')+(communes.length>8?'…':'');
+        msg.style.cssText='position:absolute;top:8px;left:8px;right:8px;background:rgba(0,0,0,.85);color:#fff;font-size:10px;padding:10px 12px;border-radius:8px;z-index:999;line-height:1.6';
+        msg.innerHTML='<b>Communes dans les données (brut) :</b><br>'+communes.slice(0,15).map(c=>`"${c[0]}" (${c[1]})`).join('<br>')+(communes.length>15?`<br>…+${communes.length-15}`:'')+
+          '<br><br><b>Sample COMMUNE_COORDS :</b><br>'+Object.keys(COMMUNE_COORDS).slice(0,5).join(', ');
         document.getElementById('dr-map').appendChild(msg);
+        // Tenter geocoding API pour les communes non trouvées (max 5)
+        notFound.slice(0,5).forEach(nom=>{
+          fetch(`https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(nom)}&fields=centre&boost=population&limit=1`)
+            .then(r=>r.json())
+            .then(res=>{
+              if(res[0]?.centre?.coordinates){
+                const [lng,lat]=res[0].centre.coordinates;
+                COMMUNE_COORDS[nom.toUpperCase()]=[lat,lng];
+                COMMUNE_COORDS[nom]=[lat,lng];
+                // Re-essayer si toutes les communes sont maintenant trouvées
+                const recheck=communes.filter(([n])=>getCoordsGlobal(n));
+                if(recheck.length>0&&markers.length===0){
+                  try{msg.remove();}catch(e){}
+                  recheck.forEach(([n,v])=>{
+                    const co=getCoordsGlobal(n);
+                    const rv=Math.max(7,Math.sqrt(v/maxV)*30);
+                    const ci=L.circleMarker(co,{radius:rv,fillColor:'#3b82f6',fillOpacity:.8,color:'#fff',weight:2});
+                    ci.bindPopup(`<b>${n}</b><br>${v} accompagnement${v>1?'s':''}`);
+                    ci.addTo(map);markers.push(ci);
+                  });
+                  if(markers.length>0)map.fitBounds(L.featureGroup(markers).getBounds().pad(0.25));
+                }
+              }
+            }).catch(()=>{});
+        });
       }
       setTimeout(()=>map.invalidateSize(),150);
-    },80);
+    },200);
   }
 
   if(!window._geoApiLoaded){
