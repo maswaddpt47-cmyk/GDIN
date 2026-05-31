@@ -3523,12 +3523,14 @@ function drSlideTerritoire(c,data){
         communes.forEach(([nom,n])=>{
           const coords=getCoordsGlobal(nom);
           if(!coords)return;
-          const r=Math.max(7,Math.sqrt(n/maxV)*30);
-          const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:.8,color:'#fff',weight:2});
-          circle.bindPopup(`<b>${nom}</b><br>${n} accompagnement${n>1?'s':''}`);
-          circle.bindTooltip(`${nom} (${n})`,{permanent:false,direction:'top'});
-          circle.addTo(map);
-          markers.push(circle);
+          const r=Math.max(10,Math.sqrt(n/maxV)*34);
+          const sz=r*2;
+          const icon=L.divIcon({className:'',html:`<div style="width:${sz}px;height:${sz}px;background:rgba(59,130,246,0.85);border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.5);margin-left:-${r}px;margin-top:-${r}px"></div>`,iconSize:[0,0]});
+          const marker=L.marker(coords,{icon});
+          marker.bindPopup(`<b>${nom}</b><br>${n} accompagnement${n>1?'s':''}`);
+          marker.bindTooltip(`${nom} (${n})`,{permanent:false,direction:'top'});
+          marker.addTo(map);
+          markers.push(marker);
         });
         if(markers.length>0){
           try{
