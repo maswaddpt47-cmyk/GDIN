@@ -348,7 +348,8 @@ body.pres-mode .tbl th{font-size:11px}
       <button class="btn-sm" onclick="resetDates()">Tout</button>
     </div>
     <span class="filter-pill" id="fpill">Filtre actif</span>
-    <button class="btn-csv" onclick="exportCSV()" title="Exporter les données filtrées en CSV">↓ CSV</button>
+    <button class="btn-csv" onclick="exportCSV()" title="Exporter les données de la vue active en CSV">↓ CSV</button>
+    <button class="btn-csv" onclick="toggleSearch()" id="btn-search" title="Rechercher dans les motifs">🔍</button>
     <button class="btn-filter-toggle" id="btn-filter-toggle" onclick="openFilterDrawer()" title="Filtres">⚙ Filtres</button>
     <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" title="Thème clair/sombre">🌙</button>
 
@@ -401,6 +402,14 @@ body.pres-mode .tbl th{font-size:11px}
   </div>
     <button class="tabs-nav" id="tabs-next" onclick="scrollTabs(1)">›</button>
   </div><!-- /tabs-wrap -->
+  <!-- Panneau recherche motifs -->
+  <div id="search-panel" style="display:none;background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:14px;gap:10px;flex-direction:column">
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="search-input" type="text" placeholder="Rechercher dans les motifs, thèmes, orienteurs..." style="flex:1;background:var(--s2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 12px;font-size:12px;font-family:'Space Grotesk',sans-serif;outline:none" oninput="runSearch()" onkeydown="if(event.key==='Escape')toggleSearch()">
+      <button onclick="toggleSearch()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px 8px">✕</button>
+    </div>
+    <div id="search-results" style="font-size:11px;color:var(--muted)">Saisissez au moins 3 caractères…</div>
+  </div>
 
   <!-- VUE GLOBALE -->
   <div id="panel-global" class="panel active">
@@ -497,7 +506,7 @@ body.pres-mode .tbl th{font-size:11px}
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>CMS d'intervention</div><div id="bar-conum-cms" class="bar-list"></div></div>
     </div>
     <div class="g2">
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Évolution mensuelle</div><canvas id="ch-conum-evol"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Évolution mensuelle</div><button class="btn-png" onclick="copyChartPng('ch-conum-evol')" title="Copier en PNG">📋</button><canvas id="ch-conum-evol"></canvas></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--purple)"></span>Types d'action</div><canvas id="ch-conum-types"></canvas></div>
     </div>
     <div class="card" id="conum-yoy-section" style="display:none">
@@ -514,7 +523,7 @@ body.pres-mode .tbl th{font-size:11px}
     </div>
     <div class="card g1">
       <div class="card-title"><span class="dot" style="background:var(--purple)"></span>Comparaison conseillers — profil multi-critères <span style="font-size:9px;color:var(--dim);font-weight:400;margin-left:6px">normalisé sur la période</span></div>
-      <canvas id="ch-conum-radar" style="max-height:380px"></canvas>
+      <button class="btn-png" onclick="copyChartPng('ch-conum-radar')" title="Copier en PNG">📋</button><canvas id="ch-conum-radar" style="max-height:380px"></canvas>
     </div>
   </div>
 
@@ -554,7 +563,7 @@ body.pres-mode .tbl th{font-size:11px}
       </div>
     </div>
     <div class="g2" style="margin-top:0">
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 communes — volume</div><canvas id="ch-terr-bar" style="max-height:260px"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 communes — volume</div><button class="btn-png" onclick="copyChartPng('ch-terr-bar')" title="Copier en PNG">📋</button><canvas id="ch-terr-bar" style="max-height:260px"></canvas></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques des communes affichées</div><canvas id="ch-terr-thema" style="max-height:260px"></canvas></div>
     </div>
     <div class="card" id="terr-yoy-section" style="display:none">
@@ -588,7 +597,7 @@ body.pres-mode .tbl th{font-size:11px}
         <canvas id="ch-rpt-delai" style="max-height:160px"></canvas>
       </div>
       <div class="g2">
-        <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Évolution mensuelle</div><canvas id="ch-rpt-evol"></canvas></div>
+        <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Évolution mensuelle</div><button class="btn-png" onclick="copyChartPng('ch-rpt-evol')" title="Copier en PNG">📋</button><canvas id="ch-rpt-evol"></canvas></div>
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques</div><div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap"><div style="flex:0 0 160px;height:160px;position:relative"><canvas id="ch-rpt-thema"></canvas></div><div id="leg-rpt-thema" class="chart-legend" style="flex:1;min-width:140px"></div></div></div>
       </div>
       <div class="card" id="rpt-yoy-section" style="display:none">
@@ -930,31 +939,67 @@ function parseXlsText(text){
 
 // LOCALSTORAGE
 const LS_KEY='gdin_data_v3', LS_META='gdin_meta_v3';
-function saveToStorage(records,meta){
+const IDB_NAME='GDIN_DB', IDB_VER=1, IDB_STORE='records';
+
+// ── IndexedDB (capacité ~50-100MB) avec fallback localStorage ──
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(IDB_NAME,IDB_VER);
+    req.onupgradeneeded=e=>{e.target.result.createObjectStore(IDB_STORE);};
+    req.onsuccess=e=>res(e.target.result);
+    req.onerror=()=>rej(req.error);
+  });
+}
+async function saveToStorage(records,meta){
   try{
-    const json=JSON.stringify(records);
-    const sizeKb=Math.round(json.length/1024);
-    if(sizeKb>4800){
-      console.warn('[GDIN] Données trop volumineuses ('+sizeKb+'Ko) — session sans persistance');
-      return false;
-    }
-    localStorage.setItem(LS_KEY,json);
-    localStorage.setItem(LS_META,JSON.stringify(meta));
+    const db=await idbOpen();
+    await new Promise((res,rej)=>{
+      const tx=db.transaction(IDB_STORE,'readwrite');
+      const st=tx.objectStore(IDB_STORE);
+      st.put(records,'data');st.put(meta,'meta');
+      tx.oncomplete=res;tx.onerror=()=>rej(tx.error);
+    });
+    db.close();
+    // Nettoyer localStorage si IDB ok
+    try{localStorage.removeItem(LS_KEY);}catch(e){}
     return true;
   }catch(e){
-    if(e.name==='QuotaExceededError'||e.code===22){
-      console.warn('[GDIN] localStorage quota dépassé — session sans persistance');
-    }
-    return false;
+    // Fallback localStorage
+    try{
+      const json=JSON.stringify(records);
+      if(json.length/1024>4800){console.warn('[GDIN] Données trop volumineuses pour localStorage');return false;}
+      localStorage.setItem(LS_KEY,json);
+      localStorage.setItem(LS_META,JSON.stringify(meta));
+      return true;
+    }catch(e2){return false;}
   }
 }
-function loadFromStorage(){try{const r=localStorage.getItem(LS_KEY),m=localStorage.getItem(LS_META);if(r&&m)return{records:JSON.parse(r),meta:JSON.parse(m)};}catch(e){}return null;}
-function clearStorage(){localStorage.removeItem(LS_KEY);localStorage.removeItem(LS_META);}
+async function loadFromStorage(){
+  try{
+    const db=await idbOpen();
+    const result=await new Promise((res,rej)=>{
+      const tx=db.transaction(IDB_STORE,'readonly');
+      const st=tx.objectStore(IDB_STORE);
+      const rData=st.get('data'), rMeta=st.get('meta');
+      tx.oncomplete=()=>res({data:rData.result,meta:rMeta.result});
+      tx.onerror=()=>rej(tx.error);
+    });
+    db.close();
+    if(result.data&&result.meta)return{records:result.data,meta:result.meta};
+  }catch(e){}
+  // Fallback localStorage
+  try{const r=localStorage.getItem(LS_KEY),m=localStorage.getItem(LS_META);if(r&&m)return{records:JSON.parse(r),meta:JSON.parse(m)};}catch(e){}
+  return null;
+}
+async function clearStorage(){
+  try{const db=await idbOpen();const tx=db.transaction(IDB_STORE,'readwrite');tx.objectStore(IDB_STORE).clear();db.close();}catch(e){}
+  try{localStorage.removeItem(LS_KEY);localStorage.removeItem(LS_META);}catch(e){}
+}
 
 // INIT
-function initData(){
+async function initData(){
   // Also filter Reservation from embedded data at init
-  const stored=loadFromStorage();
+  const stored=await loadFromStorage();
   if(stored){DATA=stored.records;dataSource='imported';importMeta=stored.meta;updateSourceBadge(true,stored.meta);}
   else{const EXCL=new Set(['Reservation','Ateliers']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL.has(t))}))
     .filter(r=>r.cms!==null);dataSource='embedded';updateSourceBadge(false,null);}
@@ -1026,6 +1071,15 @@ function makeBarList(el,data,color='blue',n=9){
 function switchTab(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  // Afficher badge filtre actif si filtres non par défaut
+  try{
+    const from=document.getElementById('dFrom').value;
+    const to=document.getElementById('dTo').value;
+    const type=document.getElementById('typeFilter')?.value;
+    const hasFilter=(from||to||type);
+    document.getElementById('btn-filter-toggle')?.classList.toggle('has-filter',!!hasFilter);
+  }catch(e){}
+
   document.getElementById('panel-'+id).classList.add('active');btn.classList.add('active');
   try{sessionStorage.setItem('gdin_tab',id);}catch(e){}
   if(id==='evolution'){buildYearChips();renderEvolution();}
@@ -1870,6 +1924,7 @@ function confirmImport(){
   const existingKeys=new Set(base.map(makeKey));
   const newRecords=records.filter(r=>!existingKeys.has(makeKey(r)));
   const merged=[...base,...newRecords];
+  const duplicates=records.length-newRecords.length;
   DATA=merged;dataSource='imported';
   const years=[...new Set(merged.map(r=>r.date_demande.slice(0,4)))].sort(); // toutes les années de merged
   importMeta={filename,count:DATA.length,years,date:new Date().toLocaleDateString('fr-FR')};
@@ -1878,20 +1933,28 @@ function confirmImport(){
     const sizeKb=Math.round(JSON.stringify(merged).length/1024);
     document.getElementById('pv-warnings').innerHTML+=`<div class="alert-box" style="background:rgba(239,68,68,.15);border-color:#ef4444;color:var(--text)">⚠ <strong>Données trop volumineuses pour la sauvegarde automatique (${sizeKb} Ko > 4800 Ko).</strong><br>Les ${DATA.length} enregistrements sont disponibles cette session uniquement. Vous devrez réimporter à chaque ouverture.</div>`;
   }
+  if(duplicates>0){
+    document.getElementById('pv-warnings').innerHTML+=`<div class="alert-box" style="background:rgba(234,179,8,.1);border-color:var(--yellow);color:var(--text)">ℹ <strong>${duplicates} doublon${duplicates>1?'s':''} ignoré${duplicates>1?'s':''}</strong> — déjà présent${duplicates>1?'s':''} dans la base.</div>`;
+  }
 
   updateSourceBadge(true,importMeta);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   pendingData=null;document.getElementById('import-preview').style.display='none';document.getElementById('parse-progress-box').style.display='none';
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
   const dot=document.getElementById('cs-dot');dot.style.background='var(--green)';
-  document.getElementById('cs-label').innerHTML=`<strong style="color:var(--green)">✓ Fusion réussie —</strong> ${DATA.length} enregistrements au total (${importMeta.years.join(', ')})`;
+  const dupMsg=duplicates>0?` · <span style="color:var(--yellow)">${duplicates} doublon${duplicates>1?'s':''} ignoré${duplicates>1?'s':''}</span>`:'';
+  document.getElementById('cs-label').innerHTML=`<strong style="color:var(--green)">✓ Fusion réussie —</strong> ${newRecords.length} nouveaux · ${DATA.length} total (${importMeta.years.join(', ')})${dupMsg}`;
 }
 function cancelImport(){pendingData=null;['import-preview','import-error','parse-progress-box','import-anomalies'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('file-input').value='';}
 function resetToEmbedded(){
   if(!confirm('Supprimer les données importées et revenir aux données intégrées ?'))return;
-  clearStorage();const EXCL_RST=new Set(['Reservation','Ateliers']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL_RST.has(t))}))
-    .filter(r=>r.cms!==null);
-  dataSource='embedded';importMeta=null;updateSourceBadge(false,null);updateAllYears();updateDateRange();updateCurrentSourceInfo();
-  initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
+  clearStorage().then(()=>{
+    const EXCL_RST=new Set(['Reservation','Ateliers']);
+    DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL_RST.has(t))}))
+      .filter(r=>r.cms!==null);
+    dataSource='embedded';importMeta=null;
+    updateSourceBadge(false,null);updateAllYears();updateDateRange();updateCurrentSourceInfo();
+    initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
+  });
 }
 
 // REFRESH
@@ -1911,9 +1974,27 @@ function refreshAll(){
   if(document.getElementById('panel-rapport').classList.contains('active'))renderRapport();
 }
 function exportCSV(){
-  const d=getFiltered();
-  if(!d.length){alert('Aucune donnée filtrée à exporter.');return;}
-  const cols=['date_demande','date_action','conum','cms','commune','themas','type_action','orienteur','motif'];
+  // Données contextuelles selon l'onglet actif
+  const activePanel=[...document.querySelectorAll('.panel.active')][0]?.id||'';
+  let d=getFiltered();
+  let suffix='global';
+  if(activePanel==='panel-par-cms'){
+    const cms=document.getElementById('sel-cms')?.value;
+    if(cms){d=d.filter(r=>r.cms===cms);suffix='CMS_'+cms.replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);}
+  } else if(activePanel==='panel-par-conum'){
+    const cn=document.getElementById('sel-conum')?.value;
+    if(cn){d=d.filter(r=>r.conum===cn);suffix='CN_'+cn.replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);}
+  } else if(activePanel==='panel-rapport'){
+    const cn=document.getElementById('sel-rpt-conum')?.value;
+    const cms=document.getElementById('sel-rpt-cms')?.value;
+    if(cn){d=d.filter(r=>r.conum===cn);suffix='Rapport_'+cn.replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);}
+    if(cms&&cn)d=d.filter(r=>r.cms===cms);
+  } else if(activePanel==='panel-orienteurs'){
+    const cms=document.getElementById('sel-ori-cms')?.value;
+    if(cms){d=d.filter(r=>r.cms===cms);suffix='Orienteurs_'+cms.replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);}
+  }
+  if(!d.length){alert('Aucune donnée à exporter pour cette vue.');return;}
+  const cols=['date_demande','date_action','conum','cms','commune','themas','type_action','orienteur','motif','delai'];
   const header=cols.join(';');
   const rows=d.map(r=>[
     r.date_demande||'',
@@ -1924,7 +2005,8 @@ function exportCSV(){
     (r.themas||[]).join('/'),
     (r.type_action||[]).join(';'),
     r.orienteur||'',
-    (r.motif||'').replace(/;/g,',').replace(/\n/g,' ')
+    (r.motif||'').replace(/;/g,',').replace(/\n/g,' '),
+    r.delai!=null?r.delai:''
   ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';'));
   const csv='\uFEFF'+header+'\n'+rows.join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
@@ -1932,9 +2014,70 @@ function exportCSV(){
   const a=document.createElement('a');
   a.href=url;
   const f=document.getElementById('dFrom').value,t=document.getElementById('dTo').value;
-  a.download=`GDIN_export_${f}_${t}.csv`;
+  a.download=`GDIN_${suffix}_${f}_${t}.csv`;
   document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},500);
+}
+
+// Copie graphe en PNG (ou télécharge si clipboard non dispo)
+function copyChartPng(canvasId){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas){alert('Graphe introuvable.');return;}
+  canvas.toBlob(blob=>{
+    if(!blob)return;
+    try{
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{
+        const btns=document.querySelectorAll(`[onclick*="${canvasId}"]`);
+        btns.forEach(btn=>{const o=btn.textContent;btn.textContent='✓';setTimeout(()=>{btn.textContent=o;},1500);});
+      }).catch(()=>{downloadBlob(blob,canvasId+'.png');});
+    }catch(e){downloadBlob(blob,canvasId+'.png');}
+  },'image/png');
+}
+function downloadBlob(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+// Recherche textuelle dans les motifs
+function toggleSearch(){
+  const panel=document.getElementById('search-panel');
+  const visible=panel.style.display==='flex';
+  panel.style.display=visible?'none':'flex';
+  if(!visible){
+    document.getElementById('search-input').focus();
+    document.getElementById('search-results').textContent='Saisissez au moins 3 caractères…';
+  }
+}
+
+function runSearch(){
+  const q=document.getElementById('search-input').value.trim().toLowerCase();
+  const res=document.getElementById('search-results');
+  if(q.length<3){res.textContent='Saisissez au moins 3 caractères…';return;}
+  const data=getFiltered();
+  const hits=data.filter(r=>
+    (r.motif||'').toLowerCase().includes(q)||
+    (r.themas||[]).some(t=>t.toLowerCase().includes(q))||
+    (r.orienteur||'').toLowerCase().includes(q)||
+    (r.commune||'').toLowerCase().includes(q)||
+    (r.cms||'').toLowerCase().includes(q)
+  );
+  if(!hits.length){res.innerHTML=`<span style="color:var(--muted)">Aucun résultat pour "<b>${q}</b>"</span>`;return;}
+  const shown=hits.slice(0,50);
+  res.innerHTML=`<div style="color:var(--text);margin-bottom:8px"><b>${hits.length}</b> résultat${hits.length>1?'s':''} ${hits.length>50?'(50 premiers affichés)':''}</div>`+
+    shown.map(r=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;margin-bottom:5px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin-bottom:3px">
+        <span>${r.date_demande||''}</span><span style="color:var(--blue)">${r.conum||''}</span><span>${r.cms||''.replace('Centre Médico-Social ','CMS ')}</span><span>${r.commune||''}</span>
+        ${(r.themas||[]).map(t=>`<span style="background:var(--s3);border-radius:3px;padding:1px 5px">${t}</span>`).join('')}
+      </div>
+      <div style="font-size:11px;color:var(--text)">${highlightSearch(r.motif||'',q)}</div>
+    </div>`).join('');
+}
+
+function highlightSearch(text,q){
+  const escaped=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return text.slice(0,200).replace(new RegExp(escaped,'gi'),m=>`<mark style="background:rgba(234,179,8,.3);color:inherit;border-radius:2px">${m}</mark>`);
 }
 
 // ── MODE PRÉSENTATION ──
@@ -2124,26 +2267,87 @@ document.addEventListener('keydown',e=>{
 
 // PRINT
 function printRapport(){
-  // Hide all panels except rapport
+  const conum=document.getElementById('sel-rpt-conum')?.value||'';
+  const cms=document.getElementById('sel-rpt-cms')?.value||'Tous CMS';
+  const from=document.getElementById('dFrom')?.value||'';
+  const to=document.getElementById('dTo')?.value||'';
+
+  // Injecter CSS d'impression spécifique fiche
+  const styleId='pdf-print-style';
+  let styleEl=document.getElementById(styleId);
+  if(!styleEl){styleEl=document.createElement('style');styleEl.id=styleId;document.head.appendChild(styleEl);}
+  styleEl.textContent=`
+    @media print{
+      @page{size:A4 portrait;margin:1.2cm 1.4cm}
+      body{background:#fff!important;color:#1a2235!important}
+      .pdf-cover{display:block!important;page-break-after:always;padding:40px 0 30px}
+      .pdf-cover-logo{font-size:28px;font-weight:800;color:#1a2235;letter-spacing:-1px}
+      .pdf-cover-sub{font-size:13px;color:#5a6a85;margin-top:4px}
+      .pdf-cover-name{font-size:22px;font-weight:700;color:#3b82f6;margin-top:32px}
+      .pdf-cover-meta{font-size:11px;color:#5a6a85;margin-top:8px;line-height:1.8}
+      .pdf-cover-date{font-size:10px;color:#9aa5b8;margin-top:24px;border-top:1px solid #e4e7ef;padding-top:12px}
+      #panel-rapport{display:block!important}
+      #panel-rapport .card{break-inside:avoid;margin-bottom:14px;border:1px solid #d0d5e0!important;background:#fff!important;border-radius:8px;padding:14px}
+      #panel-rapport .card-title{color:#5a6a85!important;font-size:9px!important;margin-bottom:10px}
+      #panel-rapport canvas{max-height:180px!important}
+      #panel-rapport .kpi{background:#f4f6fa!important;border:1px solid #d0d5e0!important;border-radius:8px;padding:10px 14px}
+      #panel-rapport .kpi-value{font-size:22px!important}
+      #panel-rapport .chart-legend .cl-item{background:#eef0f5!important;border:1px solid #d0d5e0!important;font-size:9px!important;padding:2px 6px!important}
+      #panel-rapport .bar-list-item{background:#f4f6fa!important;border:1px solid #d0d5e0!important}
+      #panel-rapport .bar-fill{opacity:.8}
+      .rpt-params-card,.btn-print,.print-hide,.rpt-yoy-section{display:none!important}
+      #rpt-empty{display:none!important}
+      .g5{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
+      .g2{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
+      .g3{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:10px!important}
+    }`;
+
+  // Injecter une page de couverture
+  const coverId='pdf-cover-block';
+  let cover=document.getElementById(coverId);
+  if(!cover){
+    cover=document.createElement('div');
+    cover.id=coverId;
+    cover.className='pdf-cover';
+    cover.style.display='none';
+    document.getElementById('panel-rapport').prepend(cover);
+  }
+  const periodStr=from&&to?`${from.split('-').reverse().join('/')} → ${to.split('-').reverse().join('/')}`:from||to||'Toutes périodes';
+  cover.innerHTML=`
+    <div class="pdf-cover-logo">CD47 · GDIN</div>
+    <div class="pdf-cover-sub">Dashboard Activité Conseiller Numérique</div>
+    <div class="pdf-cover-name">${conum}</div>
+    <div class="pdf-cover-meta">
+      Structure : ${cms}<br>
+      Période : ${periodStr}<br>
+      Généré le : ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}
+    </div>
+    <div class="pdf-cover-date">Conseil Départemental du Lot-et-Garonne — Données GDIN</div>`;
+
+  // Marquer la card de params pour la masquer
+  const paramsCard=document.getElementById('panel-rapport').querySelector('.card:first-of-type:not(#pdf-cover-block)');
+  if(paramsCard)paramsCard.classList.add('rpt-params-card');
+
+  // Masquer tous les panels sauf rapport
   document.querySelectorAll('.panel').forEach(p=>p.classList.add('print-hide'));
   const rpt=document.getElementById('panel-rapport');
   rpt.classList.remove('print-hide');
-  rpt.style.display='block';
-  const empty=document.getElementById('rpt-empty');
-  empty.style.display='none';
-  // Hide params card (selectors) during print
-  const paramsCard=rpt.querySelector('.card:first-child');
-  if(paramsCard)paramsCard.classList.add('print-hide');
-  
+  document.getElementById('rpt-empty').style.display='none';
+
   window.print();
-  
-  // Restore
-  document.querySelectorAll('.panel').forEach(p=>{p.classList.remove('print-hide');p.style.removeProperty('display');});
-  empty.style.removeProperty('display');
-  if(paramsCard)paramsCard.classList.remove('print-hide');
-  // Re-apply active state
+
+  // Restaurer
+  document.querySelectorAll('.panel').forEach(p=>{p.classList.remove('print-hide');});
+  document.getElementById('rpt-empty').style.removeProperty('display');
+  if(paramsCard)paramsCard.classList.remove('rpt-params-card');
+  cover.style.display='none';
+  cover.innerHTML='';
+  // Re-apply active panel
   const activeTab=document.querySelector('.tab.active');
-  if(activeTab){const id=activeTab.getAttribute('onclick').match(/switchTab\('([^']+)'/);if(id)document.getElementById('panel-'+id[1]).style.display='block';}
+  if(activeTab){
+    const id=activeTab.getAttribute('onclick').match(/switchTab\('([^']+)'/);
+    if(id)document.getElementById('panel-'+id[1]).classList.add('active');
+  }
 }
 
 // ÉTATS ACTIONS
@@ -3448,15 +3652,17 @@ function toggleTheme(){
   }catch(e){}
   // Forcer le recalcul CSS AVANT de créer les charts (cssVar doit lire les bonnes vars)
   void document.body.offsetHeight;
-  initData();initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();renderGlobal();
-  // Restaurer l'onglet actif
-  try{
-    const saved=sessionStorage.getItem('gdin_tab');
-    if(saved&&saved!=='global'){
-      const btn=document.querySelector(`.tab[onclick*="switchTab('${saved}'"]`);
-      if(btn)switchTab(saved,btn);
-    }
-  }catch(e){}
+  initData().then(()=>{
+    initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();renderGlobal();
+    // Restaurer l'onglet actif
+    try{
+      const saved=sessionStorage.getItem('gdin_tab');
+      if(saved&&saved!=='global'){
+        const btn=document.querySelector(`.tab[onclick*="switchTab('${saved}'"]`);
+        if(btn)switchTab(saved,btn);
+      }
+    }catch(e){}
+  });
 })();
 </script>
 </body>
