@@ -795,7 +795,7 @@ body.pres-mode .tbl th{font-size:11px}
 </div><!-- /container -->
 
 <!-- Overlay Diapo Rapport -->
-<div id="dr-overlay" style="display:none;position:fixed;inset:0;z-index:8000;background:var(--bg);flex-direction:column;overflow:hidden">
+<div id="dr-overlay" style="display:none;position:fixed;inset:0;z-index:8000;background:var(--bg);background-color:#0b0f19;flex-direction:column;overflow:hidden">
 
   <!-- Topbar -->
   <div id="dr-topbar" style="display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0">
@@ -3672,6 +3672,8 @@ function startDiapoRapport(){
   drIdx=0;
 
   document.getElementById('dr-overlay').style.display='flex';
+  // Forcer fond opaque selon thème actif (Android peut ne pas recalculer les CSS vars)
+  document.getElementById('dr-overlay').style.backgroundColor=cssVar('--bg')||( document.body.classList.contains('light-mode')?'#f4f6fa':'#0b0f19');
   document.getElementById('dr-conum-badge').textContent=drConum;
   document.getElementById('dr-cms-badge').textContent=drCms;
 
