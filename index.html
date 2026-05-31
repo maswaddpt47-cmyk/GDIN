@@ -471,6 +471,10 @@ body.pres-mode .tbl th{font-size:11px}
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Évolution mensuelle (ce CMS)</div><canvas id="ch-cms-evol"></canvas></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--purple)"></span>Types d'action</div><canvas id="ch-cms-types"></canvas></div>
     </div>
+    <div class="card" id="cms-yoy-section" style="display:none">
+      <div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Comparaison N vs N-1 — mois calendaires</div>
+      <canvas id="ch-cms-yoy" style="max-height:240px"></canvas>
+    </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Top orienteurs</div>
       <table class="tbl"><thead><tr><th>#</th><th>Orienteur</th><th>Demandes</th><th>% CMS</th><th>Conseiller principal</th></tr></thead>
       <tbody id="tbl-cms-ori"></tbody></table>
@@ -488,6 +492,10 @@ body.pres-mode .tbl th{font-size:11px}
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Évolution mensuelle</div><canvas id="ch-conum-evol"></canvas></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--purple)"></span>Types d'action</div><canvas id="ch-conum-types"></canvas></div>
+    </div>
+    <div class="card" id="conum-yoy-section" style="display:none">
+      <div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Comparaison N vs N-1 — mois calendaires</div>
+      <canvas id="ch-conum-yoy" style="max-height:240px"></canvas>
     </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Récap tous conseillers</div>
       <table class="tbl"><thead><tr><th>Conseiller</th><th>Accompagnements</th><th>Orientations TS</th><th>Thématique principale</th></tr></thead>
@@ -563,6 +571,10 @@ body.pres-mode .tbl th{font-size:11px}
       <div class="g2">
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Évolution mensuelle</div><canvas id="ch-rpt-evol"></canvas></div>
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques</div><div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap"><div style="flex:0 0 160px;height:160px;position:relative"><canvas id="ch-rpt-thema"></canvas></div><div id="leg-rpt-thema" class="chart-legend" style="flex:1;min-width:140px"></div></div></div>
+      </div>
+      <div class="card" id="rpt-yoy-section" style="display:none">
+        <div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Comparaison N vs N-1 — mois calendaires</div>
+        <canvas id="ch-rpt-yoy" style="max-height:240px"></canvas>
       </div>
       <div class="g2">
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Orienteurs actifs dans ce CMS</div><div id="bar-rpt-ori" class="bar-list"></div></div>
@@ -1340,6 +1352,9 @@ function renderCms(){
   const types=countTypes(data);
   destroyChart('ch-cms-types');
   charts['ch-cms-types']=new Chart(document.getElementById('ch-cms-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:tc(),font:{size:10}}}}}});
+
+  // N vs N-1
+  buildYoyChart('ch-cms-yoy','cms-yoy-section',data);
   let rows='';
   Object.entries(count(data,'orienteur')).slice(0,15).forEach(([name,n],i)=>{
     const od=data.filter(r=>r.orienteur===name),topCN2=(Object.keys(count(od,'conum'))[0]||'—');
@@ -1377,6 +1392,7 @@ function renderConum(){
   const types=countTypes(data);
   destroyChart('ch-conum-types');
   charts['ch-conum-types']=new Chart(document.getElementById('ch-conum-types'),{type:'bar',data:{labels:TYPE_KEYS,datasets:[{data:TYPE_KEYS.map(k=>types[k]||0),backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:true,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{display:false},ticks:{color:tc(),font:{size:10}}}}}});
+  buildYoyChart('ch-conum-yoy','conum-yoy-section',data);
   const allConums=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE')).sort();
   let rows='';
   allConums.forEach(cn=>{
@@ -1532,6 +1548,7 @@ function renderRapport(){
   const mKeys=[...new Set(allData.map(r=>r.date_demande.slice(0,7)))].sort();
   destroyChart('ch-rpt-evol');
   charts['ch-rpt-evol']=new Chart(document.getElementById('ch-rpt-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc()}}}}});
+  buildYoyChart('ch-rpt-yoy','rpt-yoy-section',data);
   const themas=Object.entries(countThemas(data)).slice(0,8);
   destroyChart('ch-rpt-thema');
   charts['ch-rpt-thema']=new Chart(document.getElementById('ch-rpt-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
@@ -2844,6 +2861,31 @@ function buildLegend(elId, labels, colors){
   const el=document.getElementById(elId);
   if(!el)return;
   el.innerHTML=labels.map((l,i)=>`<div class="cl-item"><span class="cl-dot" style="background:${colors[i%colors.length]}"></span><span style="overflow:hidden;text-overflow:ellipsis">${l}</span></div>`).join('');
+}
+
+// Graphe N vs N-1 réutilisable
+const MOIS_LABELS=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+function buildYoyChart(canvasId, sectionId, data){
+  const sec=document.getElementById(sectionId);
+  if(!sec)return;
+  const years=[...new Set(data.map(r=>r.date_demande.slice(0,4)))].sort();
+  if(years.length<2){sec.style.display='none';return;}
+  sec.style.display='';
+  const datasets=years.map(yr=>{
+    const col=yearColor(yr);
+    const vals=Array(12).fill(0);
+    data.filter(r=>r.date_demande.startsWith(yr)).forEach(r=>{vals[parseInt(r.date_demande.slice(5,7))-1]++;});
+    return{label:yr,data:vals,backgroundColor:col+'55',borderColor:col,borderWidth:2,borderRadius:3,borderSkipped:false};
+  });
+  destroyChart(canvasId);
+  charts[canvasId]=new Chart(document.getElementById(canvasId),{
+    type:'bar',
+    data:{labels:MOIS_LABELS,datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:tc(),font:{size:11,weight:'600'},padding:10,boxWidth:10}}},
+      scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:10}}},y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc()}}}
+    }
+  });
 }
 
 // ════════════════════════════════════════════
