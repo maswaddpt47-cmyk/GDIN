@@ -399,8 +399,8 @@ body.pres-mode .tbl th{font-size:11px}
   <div id="panel-global" class="panel active">
   <div id="kpi-global" class="g5"></div>
     <div class="g2">
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Thématiques</div><div style="display:flex;align-items:center;gap:12px"><canvas id="ch-thema" style="flex:0 0 auto;max-width:180px"></canvas><div id="leg-thema" class="chart-legend"></div></div></div>
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition conseillers</div><div style="display:flex;align-items:center;gap:12px"><canvas id="ch-conum" style="flex:0 0 auto;max-width:180px"></canvas><div id="leg-conum" class="chart-legend"></div></div></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Thématiques</div><div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap"><div style="flex:0 0 160px;height:160px;position:relative"><canvas id="ch-thema"></canvas></div><div id="leg-thema" class="chart-legend" style="flex:1;min-width:140px"></div></div></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition conseillers</div><div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap"><div style="flex:0 0 160px;height:160px;position:relative"><canvas id="ch-conum"></canvas></div><div id="leg-conum" class="chart-legend" style="flex:1;min-width:140px"></div></div></div>
     </div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Accompagnements par CMS (hors DSIAN)</div><div id="bar-cms-global" class="bar-list"></div></div>
@@ -504,7 +504,7 @@ body.pres-mode .tbl th{font-size:11px}
     <div class="frow"><label>CMS :</label><select id="sel-ori-cms" onchange="renderOrienteurs()"><option value="">Tous</option></select></div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 orienteurs — volume de demandes</div><canvas id="ch-ori-bar" style="max-height:320px"></canvas></div>
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition par thématique (orienteurs actifs)</div><div style="display:flex;align-items:center;gap:12px"><canvas id="ch-ori-thema" style="flex:0 0 auto;max-width:200px;max-height:320px"></canvas><div id="leg-ori-thema" class="chart-legend"></div></div></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition par thématique (orienteurs actifs)</div><div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap"><div style="flex:0 0 160px;height:160px;position:relative"><canvas id="ch-ori-thema"></canvas></div><div id="leg-ori-thema" class="chart-legend" style="flex:1;min-width:140px"></div></div></div>
     </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Travailleurs sociaux orienteurs</div>
       <table class="tbl sortable" id="tbl-ori-wrap"><thead><tr><th>Orienteur</th><th>Structure</th><th>Demandes</th><th>Conseiller principal</th><th>Thématique principale</th></tr></thead>
@@ -562,7 +562,7 @@ body.pres-mode .tbl th{font-size:11px}
       <div id="kpi-rpt" class="g5"></div>
       <div class="g2">
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Évolution mensuelle</div><canvas id="ch-rpt-evol"></canvas></div>
-        <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques</div><div style="display:flex;align-items:center;gap:12px"><canvas id="ch-rpt-thema" style="flex:0 0 auto;max-width:180px"></canvas><div id="leg-rpt-thema" class="chart-legend"></div></div></div>
+        <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques</div><div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap"><div style="flex:0 0 160px;height:160px;position:relative"><canvas id="ch-rpt-thema"></canvas></div><div id="leg-rpt-thema" class="chart-legend" style="flex:1;min-width:140px"></div></div></div>
       </div>
       <div class="g2">
         <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Orienteurs actifs dans ce CMS</div><div id="bar-rpt-ori" class="bar-list"></div></div>
@@ -1023,12 +1023,12 @@ function renderGlobal(){
 
   const themas=Object.entries(countThemas(data)).slice(0,9);
   destroyChart('ch-thema');
-  charts['ch-thema']=new Chart(document.getElementById('ch-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}}}});
+  charts['ch-thema']=new Chart(document.getElementById('ch-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
   buildLegend('leg-thema',themas.map(t=>t[0]),PALETTE);
 
   const conumData=Object.entries(count(data,'conum'));
   destroyChart('ch-conum');
-  charts['ch-conum']=new Chart(document.getElementById('ch-conum'),{type:'doughnut',data:{labels:conumData.map(c=>c[0].split(' ')[0]),datasets:[{data:conumData.map(c=>c[1]),backgroundColor:conumData.map(c=>conumColor(c[0])),borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,data.length)}%)`}}}}});
+  charts['ch-conum']=new Chart(document.getElementById('ch-conum'),{type:'doughnut',data:{labels:conumData.map(c=>c[0].split(' ')[0]),datasets:[{data:conumData.map(c=>c[1]),backgroundColor:conumData.map(c=>conumColor(c[0])),borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,data.length)}%)`}}}}});
   buildLegend('leg-conum',conumData.map(c=>c[0].split(' ')[0]),conumData.map(c=>conumColor(c[0])));
 
   makeBarList(document.getElementById('bar-cms-global'),Object.fromEntries(Object.entries(count(noDsian,'cms')).slice(0,9)),'blue');
@@ -1528,7 +1528,7 @@ function renderRapport(){
   charts['ch-rpt-evol']=new Chart(document.getElementById('ch-rpt-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:'rgba(59,130,246,.45)',borderColor:'#3b82f6',borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:tc(),font:{size:10,weight:'500'}}},y:{grid:{color:tcBorder()},beginAtZero:true,ticks:{color:tc()}}}}});
   const themas=Object.entries(countThemas(data)).slice(0,8);
   destroyChart('ch-rpt-thema');
-  charts['ch-rpt-thema']=new Chart(document.getElementById('ch-rpt-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}}}});
+  charts['ch-rpt-thema']=new Chart(document.getElementById('ch-rpt-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:cssVar('--s1'),hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
   buildLegend('leg-rpt-thema',themas.map(t=>t[0]),PALETTE);
   makeBarList(document.getElementById('bar-rpt-ori'),count(data,'orienteur'),'green');
   const top5cms=Object.entries(count(dataConum,'cms')).slice(0,5);
