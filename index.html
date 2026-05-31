@@ -3221,35 +3221,54 @@ function drSlideTerritoire(c,data){
       </div>
     </div>`;
 
-  setTimeout(()=>{
-    if(window._drMap){try{window._drMap.remove();}catch(e){}}
-    const map=L.map('dr-map',{center:[44.35,0.62],zoom:9,zoomControl:true,attributionControl:false});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(map);
-    window._drMap=map;
-
-    const communes=Object.entries(count(data,'commune')).sort((a,b)=>b[1]-a[1]);
-    const maxV=communes[0]?.[1]||1;
-    communes.forEach(([nom,n])=>{
-      const coords=getCoordsGlobal(nom);
-      if(!coords)return;
-      const r=Math.max(6,Math.sqrt(n/maxV)*28);
-      const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:.75,color:'#fff',weight:1.5});
-      circle.bindPopup(`<b>${nom}</b><br>${n} accompagnement${n>1?'s':''}`);
-      circle._labelTotal=n;
-      circle.addTo(map);
-    });
-
-    function updateDrLabels(){
-      const z=map.getZoom();
-      map.eachLayer(l=>{
-        if(l._labelTotal===undefined)return;
-        const show=z>=13||(z>=12&&l._labelTotal>=3)||(z>=11&&l._labelTotal>=10);
-        try{if(show)l.openTooltip();else l.closeTooltip();}catch(e){}
+  function drawDrMap(){
+    setTimeout(()=>{
+      if(window._drMap){try{window._drMap.remove();}catch(e){}}
+      const map=L.map('dr-map',{center:[44.35,0.62],zoom:9,zoomControl:true,attributionControl:false});
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(map);
+      window._drMap=map;
+      const communes=Object.entries(count(data,'commune')).sort((a,b)=>b[1]-a[1]);
+      const maxV=communes[0]?.[1]||1;
+      const markers=[];
+      communes.forEach(([nom,n])=>{
+        const coords=getCoordsGlobal(nom);
+        if(!coords)return;
+        const r=Math.max(6,Math.sqrt(n/maxV)*28);
+        const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:.75,color:'#fff',weight:1.5});
+        circle.bindPopup(`<b>${nom}</b><br>${n} accompagnement${n>1?'s':''}`);
+        circle._labelTotal=n;
+        circle.addTo(map);
+        markers.push(circle);
       });
-    }
-    map.on('zoomend',updateDrLabels);
-    setTimeout(()=>map.invalidateSize(),100);
-  },80);
+      if(markers.length>0){
+        const group=L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.2));
+      }
+      setTimeout(()=>map.invalidateSize(),150);
+    },80);
+  }
+
+  if(!window._geoApiLoaded){
+    fetch('https://geo.api.gouv.fr/departements/47/communes?fields=nom,centre&format=json&geometry=centre')
+      .then(r=>r.json())
+      .then(list=>{
+        window._geoApiLoaded=true;
+        list.forEach(c=>{
+          if(c.centre&&c.centre.coordinates){
+            const [lng,lat]=c.centre.coordinates;
+            const key=c.nom.toUpperCase();
+            if(!COMMUNE_COORDS[key]){
+              COMMUNE_COORDS[key]=[parseFloat(lat.toFixed(4)),parseFloat(lng.toFixed(4))];
+              COMMUNE_COORDS[c.nom]=COMMUNE_COORDS[key];
+            }
+          }
+        });
+        drawDrMap();
+      })
+      .catch(()=>{window._geoApiLoaded=true;drawDrMap();});
+  } else {
+    drawDrMap();
+  }
 }
 
 // ── SLIDE BILAN ──
