@@ -592,6 +592,12 @@ body.pres-mode .tbl th{font-size:11px}
       <div id="rpt-actions-missing" style="display:none">
         <div class="info-box">ℹ Importe le fichier <strong>Etat_Actions</strong> pour afficher les graphes de réalisation dans ce rapport.</div>
       </div>
+      <!-- Bilan & perspectives (conum × cms) -->
+      <div class="card g1" id="rpt-bilan-card">
+        <div class="card-title"><span class="dot" style="background:var(--green)"></span>Bilan &amp; perspectives</div>
+        <div id="rpt-bilan-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"></div>
+        <div id="rpt-bilan-text" style="line-height:1.8;font-size:13px;color:var(--text)"></div>
+      </div>
     </div>
     <div id="rpt-empty" class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Sélectionne un conseiller et une structure</div><div style="font-size:11px;margin-top:4px">Le rapport sera généré pour la combinaison choisie</div></div>
   </div>
@@ -1586,6 +1592,61 @@ function renderRapport(){
     actSec.style.display='none';
     actMiss.style.display='block';
   }
+  // ── Bilan & perspectives pour ce conum × cms ──
+  buildRptBilan(conum,cms,data,dataConum);
+}
+
+// Bilan de fin de rapport, calculé STRICTEMENT sur le conum × cms sélectionné
+function buildRptBilan(conum,cms,data,dataConum){
+  const total=data.length;
+  if(!total){
+    document.getElementById('rpt-bilan-grid').innerHTML='';
+    document.getElementById('rpt-bilan-text').innerHTML='<p style="color:var(--muted)">Aucun accompagnement sur cette combinaison pour la période sélectionnée.</p>';
+    return;
+  }
+  const prenom=conum.split(' ')[0];
+  const done=data.filter(r=>r.date_action).length;
+  const txC=pct(done,total);
+  const communes=new Set(data.map(r=>r.commune).filter(Boolean)).size;
+  const orienteurs=new Set(data.map(r=>r.orienteur).filter(Boolean)).size;
+  const partCN=pct(total,dataConum.length);
+  // Délai moyen (champ delai déjà calculé : demande → action)
+  const delais=data.filter(r=>r.delai!==null&&r.delai>=0).map(r=>r.delai);
+  const delaiMoy=delais.length?Math.round(delais.reduce((a,b)=>a+b,0)/delais.length):null;
+  // Tendance trimestrielle (3 derniers mois vs 3 précédents)
+  const months=[...new Set(data.map(r=>r.date_demande.slice(0,7)))].sort().reverse();
+  const nRec=data.filter(r=>months.slice(0,3).includes(r.date_demande.slice(0,7))).length;
+  const nPre=data.filter(r=>months.slice(3,6).includes(r.date_demande.slice(0,7))).length;
+  const delta=nPre>0?Math.round((nRec-nPre)/nPre*100):0;
+  const trend=delta>=0?`+${delta}%`:`${delta}%`;
+  const trendColor=delta>=0?'var(--green)':'var(--orange)';
+  // Thématique dominante
+  const themas=Object.entries(countThemas(data));
+  const topThema=themas[0]?.[0]||'—';
+  const topN=themas[0]?.[1]||0;
+  const topThemaPct=pct(topN,total);
+  // Réactivité 48h depuis ACTIONS_DATA filtré conum × cms
+  const cmNorm=normCms(cms)||cms;
+  const actBil=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===conum&&(r.cms===cms||r.cms===cmNorm)&&(!activeYears.size||activeYears.has(r.year))):[];
+  const t48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0).length;
+  const r48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0&&r.delai_reactivite<=2).length;
+  const p48=(t48>=20)?Math.round(r48/t48*100):null;
+  const p48Color=p48===null?'var(--muted)':p48>=95?'var(--green)':p48>=85?'var(--orange)':'var(--red)';
+
+  document.getElementById('rpt-bilan-grid').innerHTML=[
+    [total,'Accompagnements','var(--blue)'],
+    [txC+'%','Taux de complétion','var(--green)'],
+    [trend,'Évolution trimestrielle',trendColor],
+    [communes,'Communes couvertes','var(--cyan)'],
+    [orienteurs,'Orienteurs actifs','var(--purple)'],
+    [delaiMoy!==null?delaiMoy+'j':'—',"Délai moyen d'action",'var(--orange)'],
+  ].map(([v,l,col])=>`<div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;border-top:2px solid ${col}"><div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500;color:${col}">${v}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-top:5px">${l}</div></div>`).join('');
+
+  const p1=`Au sein de la structure <strong style="color:var(--blue)">${cms}</strong>, ${prenom} a accompagné <strong>${total} bénéficiaire${total>1?'s':''}</strong> sur <strong>${communes} commune${communes>1?'s':''}</strong>, soit <strong style="color:var(--cyan)">${partCN}% de son activité CN totale</strong> sur la période.`;
+  const p2=`La thématique dominante est <strong style="color:var(--orange)">${topThema}</strong> (${topN} demande${topN>1?'s':''} · ${topThemaPct}%). Le taux de complétion des dossiers atteint <strong>${txC}%</strong>, avec un délai moyen de prise en charge de <strong>${delaiMoy!==null?delaiMoy+' jours':'moins d\'une semaine'}</strong>.`;
+  const p3=`L'activité affiche une évolution de <strong style="color:${trendColor}">${trend}</strong> sur le dernier trimestre, avec <strong>${orienteurs} travailleur${orienteurs>1?'s':''} social${orienteurs>1?'·aux':''} orienteur${orienteurs>1?'s':''}</strong> mobilisé${orienteurs>1?'s':''}.${p48!==null?` Le taux de réactivité 48h atteint <strong style="color:${p48Color}">${p48}%</strong> des prises de contact dans le délai réglementaire.`:''}`;
+
+  document.getElementById('rpt-bilan-text').innerHTML=`<p style="margin-bottom:9px">${p1}</p><p style="margin-bottom:9px">${p2}</p><p>${p3}</p>`;
 }
 
 // IMPORT
@@ -3070,11 +3131,25 @@ function drSlideTerritoire(c,data){
     // Conteneur dimensionné : on cale le moteur de rendu AVANT de poser les vecteurs
     map.invalidateSize();
 
+    // getCoordsGlobal est défini dans la closure de renderTerritoire (inaccessible ici) :
+    // on inline la résolution contre COMMUNE_COORDS, qui est global.
+    function coordsFor(nom){
+      if(!nom)return null;
+      const UP=nom.toUpperCase();
+      if(COMMUNE_COORDS[nom])return COMMUNE_COORDS[nom];
+      if(COMMUNE_COORDS[UP])return COMMUNE_COORDS[UP];
+      const norm=UP.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      for(const [k,v] of Object.entries(COMMUNE_COORDS)){
+        if(k.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()===norm)return v;
+      }
+      return null;
+    }
+
     const communes=Object.entries(count(data,'commune')).sort((a,b)=>b[1]-a[1]);
     const maxV=communes[0]?.[1]||1;
     const markers=[];
     communes.forEach(([nom,n])=>{
-      const coords=getCoordsGlobal(nom);
+      const coords=coordsFor(nom);
       if(!coords)return;
       const r=Math.max(6,Math.sqrt(n/maxV)*28);
       const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:.75,color:'#fff',weight:1.5});
@@ -3128,6 +3203,8 @@ function drSlideBilan(c,data,allDataConum){
   const moyBil1=dBil1.length?Math.round(dBil1.reduce((a,b)=>a+b,0)/dBil1.length):null;
   const moyBil2=dBil2.length?Math.round(dBil2.reduce((a,b)=>a+b,0)/dBil2.length):null;
   const hasActBil=ACTIONS_DATA&&ACTIONS_DATA.length>0;
+  const delaisBil=data.filter(r=>r.delai!==null&&r.delai>=0).map(r=>r.delai);
+  const delaiMoy=delaisBil.length?Math.round(delaisBil.reduce((a,b)=>a+b,0)/delaisBil.length):null;
 
   c.innerHTML=`
     <div style="padding:10px 0">
