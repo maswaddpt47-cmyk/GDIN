@@ -189,14 +189,6 @@ body.diapo-mode{overflow:hidden}
 body.diapo-mode .container{padding:0 16px 70px!important;max-width:100%!important}
 body.diapo-mode .kpi-value{font-size:36px!important}
 body.diapo-mode canvas{max-height:320px!important}
-/* Diapo rapport — grilles en colonne unique */
-#dr-content [style*="grid-template-columns:1fr 1fr"],
-#dr-content [style*="grid-template-columns:repeat(auto-fit"],
-#dr-content [style*="grid-template-columns:repeat(4"],
-#dr-content [style*="grid-template-columns:repeat(3"]{
-  grid-template-columns:1fr!important;
-}
-#dr-content canvas{max-height:280px!important}
 #diapo-overlay{display:none;position:fixed;inset:0;z-index:5000;pointer-events:none;flex-direction:column;justify-content:space-between}
 #diapo-overlay.on{display:flex}
 #diapo-topbar{pointer-events:all;background:linear-gradient(180deg,rgba(0,0,0,.65) 0%,transparent 100%);padding:10px 16px;display:flex;align-items:center;gap:10px}
@@ -241,52 +233,21 @@ body.pres-mode .bar-item .bi-val{font-size:13px}
 body.pres-mode .tbl{font-size:13px}
 body.pres-mode .tbl th{font-size:11px}
 /* ── Print : mode sombre conservé, graphes visibles ── */
-@media screen{#dr-print-container{display:none!important}}
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
-  /* Masquer tout sauf le conteneur PDF */
-  body > *:not(#dr-print-container){display:none!important}
-  #dr-print-container{display:block!important}
-  /* Forcer le mode clair sur toutes les pages */
-  #dr-print-container,
-  #dr-print-container *{
-    --bg:#ffffff;--s1:#f8f9fb;--s2:#eef0f5;--s3:#e4e7ef;
-    --border:#d0d5e0;--text:#1a2235;--muted:#5a6a85;--dim:#9aa5b8;
-    background-color:transparent;
-    color:#1a2235!important;
-    border-color:#d0d5e0!important;
-  }
-  #dr-print-container .dr-print-page{
-    page-break-after:always;
-    padding:16px 24px;
-    background:white!important;
-    color:#1a2235!important;
-    font-family:'Space Grotesk',sans-serif;
-    min-height:auto;
-  }
-  #dr-print-container .dr-print-page:last-child{page-break-after:avoid}
-  /* Cartes et KPI en clair */
-  #dr-print-container [style*="background:var(--s1)"]{background:#f8f9fb!important}
-  #dr-print-container [style*="background:var(--s2)"]{background:#eef0f5!important}
-  #dr-print-container [style*="background:var(--bg)"]{background:#ffffff!important}
-  #dr-print-container [style*="color:var(--text)"]{color:#1a2235!important}
-  #dr-print-container [style*="color:var(--muted)"]{color:#5a6a85!important}
-  /* Garder les couleurs d'accentuation */
-  #dr-print-container [style*="color:var(--blue)"]{color:#2563eb!important}
-  #dr-print-container [style*="color:var(--green)"]{color:#059669!important}
-  #dr-print-container [style*="color:var(--orange)"]{color:#ea580c!important}
-  #dr-print-container [style*="color:var(--cyan)"]{color:#0891b2!important}
-  #dr-print-container [style*="color:var(--purple)"]{color:#7c3aed!important}
-  #dr-print-container [style*="color:var(--red)"]{color:#dc2626!important}
-  /* Images canvas */
-  #dr-print-container img{max-width:100%;height:auto}
-  @page{margin:1cm;size:A4 portrait}
+  header .header-controls,header .tabs-wrap,.btn-print,.btn-csv,.btn-pres,.btn-filter-toggle,.btn-sm,.type-filter,.date-range,.toggle-group,.year-chips,.frow,select,.tabs-nav{display:none!important}
+  body{background:var(--bg)!important;color:var(--text)!important;-webkit-print-color-adjust:exact!important}
+  .card,.kpi{background:var(--s1)!important;border:1px solid var(--border)!important;break-inside:avoid}
+  .print-hide{display:none!important}
+  canvas{max-height:220px!important}
+  .container{padding:8px 12px!important}
+  @page{margin:1cm;size:A4 landscape}
 }
 
 
 /* ── Leaflet dark theme ── */
 /* filtre carte supprimé — rendu plan clair */
-#map-territoire .leaflet-container{background:#e8eaed!important}
+#map-territoire .leaflet-container{background:#f5f3ee!important}
 .leaflet-popup-content-wrapper{background:var(--s1)!important;border:1px solid var(--border)!important;color:var(--text)!important;border-radius:8px!important;box-shadow:0 4px 20px rgba(0,0,0,.5)!important}
 .leaflet-popup-tip{background:var(--s1)!important}
 .leaflet-popup-content{margin:10px 14px!important;font-family:'Space Grotesk',sans-serif!important;font-size:12px!important;line-height:1.6}
@@ -294,7 +255,7 @@ body.pres-mode .tbl th{font-size:11px}
 
 /* ── Carte Leaflet ── */
 #map-territoire{height:440px;border-radius:10px;overflow:hidden;background:var(--s2)}
-.leaflet-container{background:#0b0f19!important}
+.leaflet-container{background:#1a2235!important}
 .map-legend{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:11px;line-height:2}
 .map-legend-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .map-fullscreen-wrap{position:relative}
@@ -302,10 +263,6 @@ body.pres-mode .tbl th{font-size:11px}
 .btn-map-fs:hover{color:var(--text);border-color:var(--blue)}
 #map-territoire.map-is-fullscreen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;z-index:9999!important;border-radius:0!important;}
 .btn-map-fs.map-fs-active{position:fixed!important;top:14px!important;right:14px!important;z-index:10000!important;background:var(--s1);font-size:16px;padding:8px 12px;border-color:var(--blue);color:var(--text)}
-.dr-map-fullscreen{position:fixed!important;inset:0!important;z-index:9000!important;border-radius:0!important;}
-.dr-map-fullscreen #dr-map{height:100vh!important;width:100vw!important;border-radius:0!important;}
-#btn-dr-map-fs{position:absolute;top:10px;right:10px;z-index:9001;background:rgba(17,24,39,.85);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 11px;font-size:13px;cursor:pointer;transition:all .15s}
-#btn-dr-map-fs:hover{border-color:var(--blue)}
 
 
 .leaflet-popup-dark .leaflet-popup-content-wrapper{background:var(--s1);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.5);color:var(--text)}
@@ -368,9 +325,11 @@ body.pres-mode .tbl th{font-size:11px}
         <option value="Orientation vers un tiers">Orientation tiers</option>
       </select>
     </div>
-    <div class="type-filter" id="header-year-chips-wrap" style="align-items:center;gap:6px">
-      <label>Années</label>
-      <div id="header-year-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+    <div class="type-filter">
+      <label>Année</label>
+      <select id="yearFilter" onchange="onYearFilterChange()">
+        <option value="">Toutes</option>
+      </select>
     </div>
     <div class="date-range">
       <label>Du</label><input type="date" id="dFrom">
@@ -398,9 +357,10 @@ body.pres-mode .tbl th{font-size:11px}
         <option value="Orientation vers un tiers">Orientation vers un tiers</option>
       </select>
     </div>
-    <div class="drawer-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-      <label>Années</label>
-      <div id="drawer-year-chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    <div class="drawer-row"><label>Année</label>
+      <select id="yearFilterM" onchange="syncMobileFilter('year',this.value)">
+        <option value="">Toutes</option>
+      </select>
     </div>
     <div class="drawer-row"><label>Du</label>
       <input type="date" id="dFromM" onchange="syncMobileFilter('dFrom',this.value)">
@@ -427,6 +387,7 @@ body.pres-mode .tbl th{font-size:11px}
     <button class="tab" onclick="switchTab('territoire',this)">🗺 Territoire</button>
     <button class="tab" onclick="switchTab('rapport',this)">📋 Rapport</button>
     <button class="tab import-tab" onclick="switchTab('import',this)">⬆ Import données</button>
+    <button class="tab import-tab" onclick="switchTab('actions',this)" style="color:var(--orange)">⬆ Import états actions</button>
   </div>
     <button class="tabs-nav" id="tabs-next" onclick="scrollTabs(1)">›</button>
   </div><!-- /tabs-wrap -->
@@ -497,7 +458,7 @@ body.pres-mode .tbl th{font-size:11px}
 
   <!-- PAR CMS -->
   <div id="panel-par-cms" class="panel">
-    <div class="frow"><label>CMS :</label><select id="sel-cms" onchange="renderCms()"></select><div class="year-chips" id="year-chips-cms" style="margin-left:auto"></div></div>
+    <div class="frow"><label>CMS :</label><select id="sel-cms" onchange="renderCms()"></select></div>
     <div id="kpi-cms" class="g5"></div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Conseillers intervenants</div><div id="bar-cms-conum" class="bar-list"></div></div>
@@ -515,7 +476,7 @@ body.pres-mode .tbl th{font-size:11px}
 
   <!-- PAR CONUM -->
   <div id="panel-par-conum" class="panel">
-    <div class="frow"><label>Conseiller :</label><select id="sel-conum" onchange="renderConum()"></select><div class="year-chips" id="year-chips-conum" style="margin-left:auto"></div></div>
+    <div class="frow"><label>Conseiller :</label><select id="sel-conum" onchange="renderConum()"></select></div>
     <div id="kpi-conum" class="g5"></div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques traitées</div><div id="bar-conum-thema" class="bar-list"></div></div>
@@ -537,7 +498,7 @@ body.pres-mode .tbl th{font-size:11px}
 
   <!-- ORIENTEURS -->
   <div id="panel-orienteurs" class="panel">
-    <div class="frow"><label>CMS :</label><select id="sel-ori-cms" onchange="renderOrienteurs()"><option value="">Tous</option></select><div class="year-chips" id="year-chips-ori" style="margin-left:auto"></div></div>
+    <div class="frow"><label>CMS :</label><select id="sel-ori-cms" onchange="renderOrienteurs()"><option value="">Tous</option></select></div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 orienteurs — volume de demandes</div><canvas id="ch-ori-bar" style="max-height:320px"></canvas></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Répartition par thématique (orienteurs actifs)</div><canvas id="ch-ori-thema" style="max-height:320px"></canvas></div>
@@ -551,7 +512,7 @@ body.pres-mode .tbl th{font-size:11px}
   <!-- TERRITOIRE -->
   <div id="panel-territoire" class="panel">
     <div class="frow" style="flex-wrap:wrap;gap:12px;align-items:center">
-      <div id="terr-cms-legend" style="display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--muted)"></div><div class="year-chips" id="year-chips-terr"></div>
+      <div id="terr-cms-legend" style="display:flex;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--muted)"></div>
       <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
         <select id="terr-cms-filter" onchange="renderTerritoire()" style="font-size:11px;padding:4px 8px">
           <option value="">Tous les CMS</option>
@@ -586,7 +547,7 @@ body.pres-mode .tbl th{font-size:11px}
           <div id="rpt-cms-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px"></div>
           <select id="sel-rpt-cms" onchange="renderRapport()" style="display:none"><option value="">— Choisir —</option></select>
         </div>
-        <div class="year-chips" id="year-chips-rpt"></div><button class="btn-print" onclick="printRapport()">🖨 Imprimer</button>
+        <button class="btn-print" onclick="printRapport()">🖨 Imprimer</button>
         <button class="btn-pres" id="btn-diapo-rpt" onclick="startDiapoRapport()" style="display:none" title="Lancer le diaporama de ce rapport">▶ Diapo rapport</button>
       </div>
       <div id="rpt-header" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
@@ -643,35 +604,40 @@ body.pres-mode .tbl th{font-size:11px}
 
   <!-- IMPORT -->
   <div id="panel-import" class="panel">
-    <div class="import-hero"><h2>Import de données</h2><p>Dépose un fichier — le type est détecté automatiquement (GDIN ou Etat_Actions).</p></div>
-    <div style="max-width:860px;margin:0 auto">
-
-      <!-- Statuts des deux sources -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-        <div class="current-source" id="current-source-info" style="margin:0">
-          <div class="cs-info"><div class="cs-dot" id="cs-dot" style="background:var(--muted)"></div><span id="cs-label">Chargement…</span></div>
-          <button class="btn-reset-data" id="btn-reset" onclick="resetToEmbedded()">🗑 Réinitialiser</button>
-        </div>
-        <div class="current-source" id="act-source-info" style="margin:0">
-          <div class="cs-info"><div class="cs-dot" id="act-dot" style="background:var(--muted)"></div><span id="act-label">Aucun Etat_Actions chargé</span></div>
-          <button class="btn-reset-data" id="act-btn-reset" onclick="resetActions()">🗑 Effacer</button>
-        </div>
+    <div class="import-hero"><h2>Import de données</h2><p>Importe le fichier GDIN complet pour remplacer les données intégrées. Le fichier sera conservé entre les sessions.</p></div>
+    <div style="max-width:760px;margin:0 auto">
+      <div class="current-source g1" id="current-source-info">
+        <div class="cs-info"><div class="cs-dot" id="cs-dot" style="background:var(--muted)"></div><span id="cs-label">Chargement…</span></div>
+        <button class="btn-reset-data" id="btn-reset" onclick="resetToEmbedded()">🗑 Réinitialiser (données intégrées)</button>
       </div>
-
-      <!-- Zone de drop unique -->
       <div class="drop-zone g1" id="drop-zone">
-        <input type="file" id="file-input" accept=".xls,.xlsx,.txt,.csv" onchange="handleAutoImport(this.files[0])">
+        <input type="file" id="file-input" accept=".xls,.xlsx,.txt,.csv" onchange="handleFileSelect(this.files[0])">
         <div class="drop-icon">📂</div>
-        <div class="drop-label">Glisse n'importe quel fichier ici</div>
-        <div class="drop-sub">GDIN (.xls / texte tabulé) ou Etat_Actions (.xlsx) — détection automatique</div>
-        <span class="drop-formats">.xls · .xlsx · texte tabulé</span>
+        <div class="drop-label">Glisse le fichier ici ou clique pour parcourir</div>
+        <div class="drop-sub">Fichier GDIN texte tabulé (.xls)</div>
+        <span class="drop-formats">.xls binaire · .xlsx · texte tabulé</span>
       </div>
-
       <div id="parse-progress-box" style="display:none">
         <div class="parse-progress"><div class="parse-bar" id="parse-bar"></div></div>
         <div style="font-size:11px;color:var(--muted);text-align:center" id="parse-msg">Lecture en cours…</div>
       </div>
-      <div id="import-preview" style="display:none"></div>
+      <div id="import-preview" style="display:none">
+        <div class="card">
+          <div class="card-title"><span class="dot" style="background:var(--green)"></span>Aperçu du fichier</div>
+          <div class="preview-grid">
+            <div class="prev-kpi"><div class="pk-label">Enregistrements</div><div class="pk-value" id="pv-total">—</div><div class="pk-sub" id="pv-range">—</div></div>
+            <div class="prev-kpi"><div class="pk-label">Années détectées</div><div class="pk-value" id="pv-years">—</div><div class="pk-sub" id="pv-months">— mois couverts</div></div>
+            <div class="prev-kpi"><div class="pk-label">Conseillers</div><div class="pk-value" id="pv-conums">—</div><div class="pk-sub">actifs</div></div>
+            <div class="prev-kpi"><div class="pk-label">Structures</div><div class="pk-value" id="pv-cms">—</div><div class="pk-sub">CMS / structures</div></div>
+          </div>
+          <div class="conum-preview" id="pv-conum-list"></div>
+          <div id="pv-warnings" style="margin-top:10px"></div>
+          <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn-import" id="btn-confirm-import" onclick="confirmImport()">⬆ Fusionner avec les données existantes</button>
+            <button class="btn-sm" onclick="cancelImport()">Annuler</button>
+          </div>
+        </div>
+      </div>
       <div id="import-anomalies" style="display:none">
         <div class="anomaly-block">
           <div class="ab-title">⚠ Rapport qualité des données</div>
@@ -680,10 +646,39 @@ body.pres-mode .tbl th{font-size:11px}
       </div>
       <div id="import-error" style="display:none">
         <div class="alert-box" id="import-error-msg"></div>
-        <button class="btn-sm" onclick="document.getElementById('import-error').style.display='none'">Réessayer</button>
+        <button class="btn-sm" onclick="cancelImport()">Réessayer</button>
       </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-title"><span class="dot" style="background:var(--muted)"></span>Format attendu</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.8">
+          <div>• Première ligne : <code style="background:var(--s3);padding:1px 5px;border-radius:3px;color:var(--text)">## Sheet: A</code></div>
+          <div>• Deuxième ligne : en-têtes (N°, Nom &amp; prénom, Tel, Commune, Motif, …)</div>
+          <div>• Colonnes séparées par des tabulations, encodage UTF-8</div>
+          <div>• Dates au format numérique Excel (ex : 46169 = 2026-05-27)</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      <!-- Dashboard Etat_Actions (anciennement panel-actions) -->
+
+  <!-- ÉTATS ACTIONS -->
+  <div id="panel-actions" class="panel">
+    <div class="import-hero" style="padding:10px 0 6px">
+      <h2 style="font-size:18px">États des actions — Accompagnements</h2>
+      <p>Importe le fichier "Etat_Actions.xlsx" pour analyser les accompagnements réalisés vs non réalisés.</p>
+    </div>
+    <div style="max-width:860px;margin:0 auto">
+      <div class="current-source g1" id="act-source-info">
+        <div class="cs-info"><div class="cs-dot" id="act-dot" style="background:var(--muted)"></div><span id="act-label">Aucune donnée chargée</span></div>
+        <button class="btn-reset-data" id="act-btn-reset" onclick="resetActions()">🗑 Effacer les données</button>
+      </div>
+      <div class="drop-zone g1" id="act-drop-zone">
+        <input type="file" id="act-file-input" accept=".xlsx,.xls" onchange="handleActionsFile(this.files[0])">
+        <div class="drop-icon">📊</div>
+        <div class="drop-label">Glisse le fichier Etat_Actions ici</div>
+        <div class="drop-sub">Fichier Excel — feuille A</div>
+        <span class="drop-formats">.xlsx — libelle de l'etat · libelle du type · lieu · Conseiller numérique</span>
+      </div>
       <div id="act-progress-box" style="display:none">
         <div class="parse-progress"><div class="parse-bar" id="act-parse-bar"></div></div>
         <div style="font-size:11px;color:var(--muted);text-align:center" id="act-parse-msg">Lecture…</div>
@@ -776,7 +771,6 @@ body.pres-mode .tbl th{font-size:11px}
       <div id="dr-year-chips" style="display:flex;gap:4px;flex-wrap:wrap"></div>
     </div>
     <div id="dr-slide-counter" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:2px 10px">1 / 7</div>
-    <button onclick="exportDiapoPDF()" id="btn-dr-pdf" style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:var(--blue);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:500">⬇ PDF</button>
     <button onclick="stopDiapoRapport()" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red);border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-weight:500">✕ Quitter</button>
   </div>
 
@@ -868,18 +862,6 @@ function normKey(s){
 }
 const CMS_MAP={};
 Object.entries(CMS_MAP_RAW).forEach(([k,v])=>{CMS_MAP[k]=v;CMS_MAP[normKey(k)]=v;});
-// Extraire le CMS dominant : le plus fréquent parmi les non-DSIAN
-function extractDominantCms(lieuRaw){
-  const parts=(lieuRaw||'').split(';').map(s=>s.trim()).filter(Boolean);
-  const nonDsian=parts.filter(p=>!p.toUpperCase().includes('DSIAN')&&!p.toUpperCase().includes('DISTANCE'));
-  const pool=nonDsian.length?nonDsian:parts;
-  if(!pool.length)return '';
-  // Compter les occurrences
-  const freq={};
-  pool.forEach(p=>{const n=normCms(p);if(n)freq[n]=(freq[n]||0)+1;});
-  const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]);
-  return sorted[0]?sorted[0][0]:'';
-}
 // normCms — pas de fallback : absent du map = null
 function normCms(lieu){
   if(!lieu)return null;
@@ -906,11 +888,17 @@ function parseXlsText(text){
     const dd=excelDate(cols[10]);
     if(!dd)continue;
     const da=excelDate(cols[8]);
-    let cms=extractDominantCms((cols[7]||'').trim());
+    let cms=(cols[7]||'').trim();
+    cms=cms.split(';')[0].trim();
+    cms=normCms(cms);
+    const themas=(cols[12]||'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
     const EXCL=new Set(['Reservation','Ateliers']);
     for(const p of (cols[6]||'').split(';')){const t=p.trim();if(t&&!EXCL.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
-    records.push({date_demande:dd,date_action:da||null,conum:(cols[11]||'').trim(),cms,commune:(cols[3]||'').trim(),themas,type_action:types,orienteur:(cols[9]||'').trim(),motif:(cols[4]||'').slice(0,120).trim(),benef_connu:(cols[17]||'').trim().toLowerCase()==='oui',urgence:(cols[18]||'').trim().toLowerCase()==='oui'});
+    const etat=(cols[19]||'').trim()||null;
+    const dp=excelDate(cols[20])||null;
+    const dr=excelDate(cols[21])||null;
+    records.push({date_demande:dd,date_action:da||null,conum:(cols[11]||'').trim(),cms,commune:(cols[3]||'').trim(),themas,type_action:types,orienteur:(cols[9]||'').trim(),motif:(cols[4]||'').slice(0,120).trim(),benef_connu:(cols[17]||'').trim().toLowerCase()==='oui',urgence:(cols[18]||'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide. Vérifiez le format.');
   return{records,warnings};
@@ -945,65 +933,47 @@ function initData(){
 function updateAllYears(){
   const yrs=[...new Set(DATA.map(r=>r.date_demande.slice(0,4)))].sort();
   ALL_YEARS=yrs;activeYears=new Set(yrs);
-  buildAllYearChips();
+  // Populate year dropdown
+  const sel=document.getElementById('yearFilter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Toutes</option>';
+  yrs.forEach(yr=>{const o=document.createElement('option');o.value=yr;o.textContent=yr;sel.appendChild(o);});
+  if(cur&&yrs.includes(cur))sel.value=cur;
 }
 function updateDateRange(){const dates=DATA.map(r=>r.date_demande).sort();const dmin=dates[0]||'2025-01-01',dmax=dates[dates.length-1]||'2026-12-31';document.getElementById('dFrom').value=dmin;document.getElementById('dTo').value=dmax;}
 function updateSourceBadge(imp,meta){const b=document.getElementById('data-source-badge');if(imp&&meta){b.className='data-source imported';b.textContent=`📂 ${meta.filename} — ${meta.count} enregistrements`;}else{b.className='data-source embedded';b.textContent='données intégrées';}}
 function updateCurrentSourceInfo(){const dot=document.getElementById('cs-dot'),label=document.getElementById('cs-label');if(dataSource==='imported'&&importMeta){dot.style.background='var(--green)';label.innerHTML=`<strong style="color:var(--green)">${importMeta.filename}</strong> — ${importMeta.count} enregistrements · ${importMeta.years.join(', ')} · importé le ${importMeta.date}`;}else{dot.style.background='var(--muted)';label.innerHTML=`<span style="color:var(--muted)">Données intégrées (${EMBEDDED.length} enregistrements, partiel)</span>`;}}
 
 // YEAR CHIPS
-function makeYearChip(yr,i,onClick){
-  const col=YEAR_PALETTE[i%YEAR_PALETTE.length];
-  const chip=document.createElement('button');
-  chip.className='year-chip';chip.textContent=yr;chip.dataset.yr=yr;chip.dataset.idx=i;
-  chip.style.borderColor=col;
-  chip.style.color=activeYears.has(yr)?'#fff':'var(--muted)';
-  chip.style.background=activeYears.has(yr)?col+'55':'var(--s2)';
-  chip.onclick=onClick;
-  return chip;
+function buildYearChips(){
+  const c=document.getElementById('year-chips');c.innerHTML='';
+  ALL_YEARS.forEach((yr,i)=>{const chip=document.createElement('button');chip.className='year-chip';chip.textContent=yr;const col=YEAR_PALETTE[i%YEAR_PALETTE.length];chip.style.borderColor=col;chip.style.color=activeYears.has(yr)?'#fff':'var(--muted)';chip.style.background=activeYears.has(yr)?col+'55':'var(--s2)';chip.onclick=()=>toggleYear(yr,chip,i);c.appendChild(chip);});
 }
-function buildAllYearChips(){
-  const ids=['year-chips','header-year-chips','drawer-year-chips',
-             'year-chips-cms','year-chips-conum','year-chips-ori',
-             'year-chips-terr','year-chips-rpt'];
-  ids.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){el.innerHTML='';ALL_YEARS.forEach((yr,i)=>{el.appendChild(makeYearChip(yr,i,()=>toggleYear(yr,i)));});}
-  });
-}
-function buildYearChips(){buildAllYearChips();}
-function syncYearChipStyles(){
-  ['year-chips','header-year-chips','drawer-year-chips','year-chips-cms','year-chips-conum','year-chips-ori','year-chips-terr','year-chips-rpt'].forEach(id=>{
-    const el=document.getElementById(id);if(!el)return;
-    el.querySelectorAll('button.year-chip').forEach(chip=>{
-      const yr=chip.dataset.yr,i=parseInt(chip.dataset.idx);
-      const col=YEAR_PALETTE[i%YEAR_PALETTE.length];
-      chip.style.color=activeYears.has(yr)?'#fff':'var(--muted)';
-      chip.style.background=activeYears.has(yr)?col+'55':'var(--s2)';
-    });
-  });
-}
-function toggleYear(yr,idx){
-  if(activeYears.has(yr)){if(activeYears.size===1)return;activeYears.delete(yr);}
-  else{activeYears.add(yr);}
-  syncYearChipStyles();
-  refreshAll();
-}
+function toggleYear(yr,chip,idx){if(activeYears.has(yr)){if(activeYears.size===1)return;activeYears.delete(yr);chip.style.color='var(--muted)';chip.style.background='var(--s2)';}else{activeYears.add(yr);chip.style.color='#fff';chip.style.background=YEAR_PALETTE[idx%YEAR_PALETTE.length]+'55';}renderEvolution();}
 
 // UTILS
 function getFiltered(){
-  const f=document.getElementById('dFrom').value,t=document.getElementById('dTo').value,ty=document.getElementById('typeFilter').value;
+  const f=document.getElementById('dFrom').value,t=document.getElementById('dTo').value,ty=document.getElementById('typeFilter').value,yr=document.getElementById('yearFilter').value;
   const dates=DATA.map(r=>r.date_demande).sort();const dmin=dates[0]||'',dmax=dates[dates.length-1]||'';
-  const allSelected=activeYears.size===ALL_YEARS.length;
-  document.getElementById('fpill').classList.toggle('on',f!==dmin||t!==dmax||ty!==''||!allSelected);
+  document.getElementById('fpill').classList.toggle('on',f!==dmin||t!==dmax||ty!==''||yr!=='');
   let d=DATA.filter(r=>r.date_demande>=f&&r.date_demande<=t);
-  if(!allSelected)d=d.filter(r=>activeYears.has(r.date_demande.slice(0,4)));
   if(ty)d=d.filter(r=>r.type_action&&r.type_action.includes(ty));
   return d;
 }
-function resetDates(){updateDateRange();document.getElementById('typeFilter').value='';activeYears=new Set(ALL_YEARS);syncYearChipStyles();refreshAll();try{document.getElementById('btn-filter-toggle').classList.remove('has-filter');}catch(e){}}
+function resetDates(){updateDateRange();document.getElementById('typeFilter').value='';document.getElementById('yearFilter').value='';refreshAll();try{document.getElementById('btn-filter-toggle').classList.remove('has-filter');}catch(e){}}
 
-function onYearFilterChange(){/* remplacé par toggleYear + chips */}
+function onYearFilterChange(){
+  const yr=document.getElementById('yearFilter').value;
+  if(yr){
+    document.getElementById('dFrom').value=yr+'-01-01';
+    document.getElementById('dTo').value=yr+'-12-31';
+    activeYears=new Set([yr]);
+  } else {
+    updateDateRange();
+    activeYears=new Set(ALL_YEARS);
+  }
+  refreshAll();
+}
 document.getElementById('dFrom').addEventListener('change',refreshAll);
 document.getElementById('dTo').addEventListener('change',refreshAll);
 
@@ -1546,8 +1516,7 @@ function renderRapport(){
   const oriCount=new Set(data.map(r=>r.orienteur).filter(Boolean)).size;
   const topThema=Object.keys(countThemas(data))[0]||'—';
   // Délais depuis ACTIONS_DATA
-  const cmNormRpt=normCms(cms)||cms;
-  const actRpt=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===conum&&(r.cms===cms||r.cms===cmNormRpt)&&r.etat==='Réalisée'&&(!activeYears.size||activeYears.has(r.year))):[];
+  const actRpt=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===conum&&(!activeYears.size||activeYears.has(r.year))):[];
   const totalOrientations=actRpt.length;
   // % dans les 48h (orientation → prise de contact)
   const delR2=actRpt.map(r=>r.delai_total).filter(v=>v!=null&&v>=0);
@@ -1555,6 +1524,7 @@ function renderRapport(){
   const hasAct=ACTIONS_DATA&&ACTIONS_DATA.length>0;
   document.getElementById('kpi-rpt').innerHTML=`
     <div class="kpi blue"><div class="kpi-label">Accompagnements</div><div class="kpi-value">${data.length}</div><div class="kpi-sub">${pct(data.length,dataConum.length)}% activité CN</div></div>
+    <div class="kpi green"><div class="kpi-label">Orientations TS</div><div class="kpi-value">${hasAct?totalOrientations:'—'}</div><div class="kpi-sub">${hasAct?'total reçues':'import requis'}</div></div>
     <div class="kpi orange"><div class="kpi-label">Orienteurs actifs</div><div class="kpi-value">${oriCount}</div><div class="kpi-sub">travailleurs sociaux</div></div>
     <div class="kpi cyan"><div class="kpi-label">Délai total</div><div class="kpi-value">${hasAct&&moyR2!=null?moyR2+'j':'—'}</div><div class="kpi-sub">orientation→réalisation</div></div>`;
   const mKeys=[...new Set(allData.map(r=>r.date_demande.slice(0,7)))].sort();
@@ -1661,7 +1631,7 @@ function buildRptBilan(conum,cms,data,dataConum){
   const topThemaPct=pct(topN,total);
   // Réactivité 48h depuis ACTIONS_DATA filtré conum × cms
   const cmNorm=normCms(cms)||cms;
-  const actBil=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===conum&&(r.cms===cms||r.cms===cmNorm)&&r.etat==='Réalisée'&&(!activeYears.size||activeYears.has(r.year))):[];
+  const actBil=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===conum&&(r.cms===cms||r.cms===cmNorm)&&(!activeYears.size||activeYears.has(r.year))):[];
   const t48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0).length;
   const r48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0&&r.delai_reactivite<=2).length;
   const p48=(t48>=20)?Math.round(r48/t48*100):null;
@@ -1685,107 +1655,13 @@ function buildRptBilan(conum,cms,data,dataConum){
 
 // IMPORT
 const dropZone=document.getElementById('drop-zone');
+const actDropZone=document.getElementById('act-drop-zone');
+actDropZone.addEventListener('dragover',e=>{e.preventDefault();actDropZone.classList.add('drag-over');});
+actDropZone.addEventListener('dragleave',()=>actDropZone.classList.remove('drag-over'));
+actDropZone.addEventListener('drop',e=>{e.preventDefault();actDropZone.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)handleActionsFile(f);});
 dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag-over');});
 dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)handleAutoImport(f);});
-
-// Détection automatique du type de fichier
-async function handleAutoImport(file){
-  if(!file)return;
-  document.getElementById('import-error').style.display='none';
-  const prog=document.getElementById('parse-progress-box');
-  const bar=document.getElementById('parse-bar');
-  const msg=document.getElementById('parse-msg');
-  prog.style.display='block';bar.style.width='10%';msg.textContent=`Lecture de ${file.name}…`;
-
-  const isExcel=isBinaryXls(file);
-  const reader=new FileReader();
-
-  reader.onload=async e=>{
-    bar.style.width='40%';msg.textContent='Détection du type…';
-    setTimeout(()=>{
-      try{
-        // Détection par nom de fichier en priorité, analyse en fallback
-        function normHdr(s){return String(s).toLowerCase().replace(/[éèêè]/g,'e').replace(/[àâ]/g,'a').replace(/[ùû]/g,'u').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[']/g,' ');}
-        const fname=file.name.toLowerCase().replace(/[^a-z0-9]/g,'');
-        // GDIN en priorité absolue — ne jamais analyser les en-têtes si le nom le trahit
-        const isGdinByName=fname.includes('gdin')||fname.includes('accompagnement') && !fname.includes('etat');
-        let isActions=!isGdinByName&&(fname.includes('etataction')||fname.includes('etat_action')||fname.includes('actions'));
-        // Si nom ambigu ET pas clairement GDIN, analyser les en-têtes
-        if(!isActions&&!isGdinByName&&isExcel){
-          try{
-            const wb=XLSX.read(e.target.result,{type:'array',cellDates:false,sheetRows:5});
-            const ws=wb.Sheets[wb.SheetNames[0]];
-            const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-            // Chercher dans les 5 premières lignes (cas fichier avec ligne de titre)
-            for(let ri=0;ri<Math.min(5,rows.length);ri++){
-              const hdrsStr=rows[ri].map(normHdr).join('|');
-              if((hdrsStr.includes('libelle de l etat')||hdrsStr.includes('libelle de letat'))&&
-                 (hdrsStr.includes('libelle du type')||hdrsStr.includes('type d action'))){
-                isActions=true;break;
-              }
-            }
-          }catch(e2){}
-        }
-
-        bar.style.width='60%';
-        if(isActions){
-          msg.textContent='Fichier Etat_Actions détecté…';
-          // Réutiliser handleActionsFile logic inline
-          try{
-            const records=parseActionsXlsx(e.target.result);
-            bar.style.width='100%';msg.textContent=`${records.length} actions chargées`;
-            setTimeout(()=>{
-              prog.style.display='none';
-              ACTIONS_DATA=records;
-              saveActionsToStorage(records);
-              updateActionsUI(file.name);
-              renderActions();
-            },300);
-          }catch(err){
-            prog.style.display='none';
-            showImportError(`Etat_Actions : ${err.message}`);
-          }
-        } else {
-          msg.textContent='Fichier GDIN détecté…';
-          try{
-            let result;
-            if(isExcel){
-              try{ result=parseXlsxBinary(e.target.result); }
-              catch(binErr){
-                const text=new TextDecoder('utf-8').decode(new Uint8Array(e.target.result));
-                if(text.startsWith('## Sheet:')||text.split('	').length>5){ result=parseXlsText(text); }
-                else { throw binErr; }
-              }
-            } else {
-              result=parseXlsText(e.target.result);
-            }
-            bar.style.width='100%';msg.textContent=`${result.records.length} enregistrements`;
-            setTimeout(()=>{
-              prog.style.display='none';
-              pendingData={records:result.records,filename:file.name,warnings:result.warnings};
-              confirmImport();
-            },400);
-          }catch(err){
-            prog.style.display='none';
-            showImportError(`GDIN : ${err.message}`);
-          }
-        }
-      }catch(err){
-        prog.style.display='none';
-        showImportError(err.message);
-      }
-    },300);
-  };
-  reader.onerror=()=>{prog.style.display='none';showImportError('Impossible de lire le fichier.');};
-  if(isExcel){ reader.readAsArrayBuffer(file); } else { reader.readAsText(file,'utf-8'); }
-}
-
-function showImportError(msg){
-  const el=document.getElementById('import-error');
-  document.getElementById('import-error-msg').textContent=`Erreur : ${msg}`;
-  el.style.display='block';
-}
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)handleFileSelect(f);});
 
 function isBinaryXls(file){
   // Binary XLS/XLSX if extension is xlsx, or if xls but not plain text
@@ -1813,7 +1689,10 @@ function parseXlsxBinary(arraybuffer){
     const dd=xlDate(cols[10]);
     if(!dd)continue;
     const da=xlDate(cols[8]);
-    let cms=extractDominantCms(String(cols[7]||'').trim());
+    let cms=String(cols[7]||'').trim();
+    // Lieu action peut contenir plusieurs CMS séparés par " ; " — prendre le premier
+    cms=cms.split(';')[0].trim();
+    cms=normCms(cms);
     if(!cms)continue;
     const themas=String(cols[12]||'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
@@ -1823,6 +1702,9 @@ function parseXlsxBinary(arraybuffer){
       if(t&&!EXCL_BIN.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}
       if(types.length>=4)break;
     }
+    const etat=String(cols[19]||'').trim()||null;
+    const dp=xlDate(cols[20])||null;
+    const dr=xlDate(cols[21])||null;
     records.push({
       date_demande:dd,date_action:da||null,
       conum:String(cols[11]||'').trim(),
@@ -1832,7 +1714,8 @@ function parseXlsxBinary(arraybuffer){
       orienteur:String(cols[9]||'').trim(),
       motif:String(cols[4]||'').slice(0,120).trim(),
       benef_connu:String(cols[17]||'').trim().toLowerCase()==='oui',
-      urgence:String(cols[18]||'').trim().toLowerCase()==='oui'
+      urgence:String(cols[18]||'').trim().toLowerCase()==='oui',
+      etat,date_planifiee:dp,date_realisation:dr
     });
   }
   if(!records.length)throw new Error('Aucun enregistrement valide');
@@ -1871,7 +1754,7 @@ function handleFileSelect(file){
           result=parseXlsText(e.target.result);
         }
         bar.style.width='100%';msg.textContent=`${result.records.length} enregistrements`;
-        setTimeout(()=>{prog.style.display='none';pendingData={records:result.records,filename:file.name,warnings:result.warnings};confirmImport();},400);
+        setTimeout(()=>{prog.style.display='none';pendingData={records:result.records,filename:file.name,warnings:result.warnings};showPreview(pendingData);},400);
       }catch(err){
         prog.style.display='none';
         document.getElementById('import-error').style.display='block';
@@ -1923,31 +1806,22 @@ function showPreview(pd){
 function confirmImport(){
   if(!pendingData)return;
   const{records,filename}=pendingData;
-  // Clé de déduplication robuste : date + conum + cms + commune + orienteur + themas triés
-  function makeKey(r){
-    return `${r.date_demande}|${r.conum||''}|${r.cms||''}|${r.commune||''}|${r.orienteur||''}|${(r.themas||[]).slice().sort().join('/')}`;
-  }
-  // Base : si déjà importé on fusionne, sinon on repart de zéro (pas des données intégrées)
+  // Base = données importées uniquement (pas les embedded) pour éviter les doublons inter-sessions
   const base=dataSource==='imported'?DATA:[];
+  function makeKey(r){return `${r.date_demande}|${r.conum}|${r.orienteur}|${(r.motif||'').slice(0,30)}`;}
   const existingKeys=new Set(base.map(makeKey));
-  // Dédoublonner aussi en interne le nouveau fichier
-  const seenNew=new Set();
-  const dedupedNew=records.filter(r=>{const k=makeKey(r);if(seenNew.has(k))return false;seenNew.add(k);return true;});
-  const internalDups=records.length-dedupedNew.length;
-  const newRecords=dedupedNew.filter(r=>!existingKeys.has(makeKey(r)));
-  const crossDups=dedupedNew.length-newRecords.length;
+  const newRecords=records.filter(r=>!existingKeys.has(makeKey(r)));
   const merged=[...base,...newRecords];
   DATA=merged;dataSource='imported';
-  const years=[...new Set(merged.map(r=>r.date_demande.slice(0,4)))].sort();
+  const years=[...new Set(records.map(r=>r.date_demande.slice(0,4)))].sort();
   importMeta={filename,count:DATA.length,years,date:new Date().toLocaleDateString('fr-FR')};
   const saved=saveToStorage(merged,importMeta);
+  if(!saved)document.getElementById('pv-warnings').innerHTML+=`<div class="alert-box">⚠ Sauvegarde localStorage échouée. Données en session seulement.</div>`;
   updateSourceBadge(true,importMeta);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   pendingData=null;document.getElementById('import-preview').style.display='none';document.getElementById('parse-progress-box').style.display='none';
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
   const dot=document.getElementById('cs-dot');dot.style.background='var(--green)';
-  const dupMsg=(internalDups+crossDups)>0?` · <span style="color:var(--orange)">${internalDups+crossDups} doublon${internalDups+crossDups>1?'s':''} ignoré${internalDups+crossDups>1?'s':''}</span>`:'';
-  const savedMsg=saved?'':' · <span style="color:var(--red)">⚠ sauvegarde échouée</span>';
-  document.getElementById('cs-label').innerHTML=`<strong style="color:var(--green)">✓ Fusion réussie —</strong> ${newRecords.length} nouveaux · ${DATA.length} total (${years.join(', ')})${dupMsg}${savedMsg}`;
+  document.getElementById('cs-label').innerHTML=`<strong style="color:var(--green)">✓ Fusion réussie —</strong> ${DATA.length} enregistrements au total (${importMeta.years.join(', ')})`;
 }
 function cancelImport(){pendingData=null;['import-preview','import-error','parse-progress-box','import-anomalies'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('file-input').value='';}
 function resetToEmbedded(){
@@ -1957,36 +1831,6 @@ function resetToEmbedded(){
   dataSource='embedded';importMeta=null;updateSourceBadge(false,null);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
 }
-
-// ── PLEIN ÉCRAN CARTE ──
-function toggleMapFullscreen(){
-  const map=document.getElementById('map-territoire');
-  const btn=document.getElementById('btn-map-fs');
-  if(!map)return;
-  const isFs=map.classList.toggle('map-is-fullscreen');
-  btn.classList.toggle('map-fs-active',isFs);
-  btn.textContent=isFs?'✕':'⤢';
-  btn.title=isFs?'Quitter plein écran':'Plein écran';
-  if(window._leafletMap){setTimeout(()=>window._leafletMap.invalidateSize(),100);}
-}
-function toggleDrMapFullscreen(){
-  const map=document.getElementById('dr-map');
-  const btn=document.getElementById('btn-dr-map-fs');
-  if(!map)return;
-  const wrapper=map.parentElement;
-  const isFs=wrapper.classList.toggle('dr-map-fullscreen');
-  btn.textContent=isFs?'✕':'⤢';
-  btn.title=isFs?'Quitter plein écran':'Plein écran';
-  if(window._drMap){setTimeout(()=>window._drMap.invalidateSize(),100);}
-}
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-    const map=document.getElementById('map-territoire');
-    if(map&&map.classList.contains('map-is-fullscreen'))toggleMapFullscreen();
-    const drW=document.querySelector('.dr-map-fullscreen');
-    if(drW)toggleDrMapFullscreen();
-  }
-});
 
 // REFRESH
 function refreshAll(){
@@ -2658,9 +2502,15 @@ function sortActTable(which, colIdx, thEl){
 function openFilterDrawer(){
   // Sync mobile inputs with desktop state
   document.getElementById('typeFilterM').value=document.getElementById('typeFilter').value;
+  document.getElementById('yearFilterM').value=document.getElementById('yearFilter').value;
   document.getElementById('dFromM').value=document.getElementById('dFrom').value;
   document.getElementById('dToM').value=document.getElementById('dTo').value;
-  buildAllYearChips(); // sync les chips du drawer
+  // Populate year select in drawer
+  const ySel=document.getElementById('yearFilter');
+  const ySelM=document.getElementById('yearFilterM');
+  const curVal=ySelM.value;
+  ySelM.innerHTML=ySel.innerHTML;
+  ySelM.value=curVal;
   document.getElementById('filter-drawer').classList.add('open');
   document.getElementById('drawer-backdrop').classList.add('open');
   document.body.style.overflow='hidden';
@@ -2672,7 +2522,10 @@ function closeFilterDrawer(){
 }
 function syncMobileFilter(type,val){
   if(type==='type'){document.getElementById('typeFilter').value=val;}
-  else if(type==='year'){/* géré par toggleYear */return;}
+  else if(type==='year'){
+    document.getElementById('yearFilter').value=val;
+    onYearFilterChange();return;
+  }
   else if(type==='dFrom'){document.getElementById('dFrom').value=val;}
   else if(type==='dTo'){document.getElementById('dTo').value=val;}
   refreshAll();
@@ -2681,7 +2534,7 @@ function syncMobileFilter(type,val){
   const f=document.getElementById('dFrom').value,t=document.getElementById('dTo').value;
   const dates=DATA.map(r=>r.date_demande).sort();
   const dmin=dates[0]||'',dmax=dates[dates.length-1]||'';
-  const active=f!==dmin||t!==dmax||document.getElementById('typeFilter').value!==''||activeYears.size!==ALL_YEARS.length;
+  const active=f!==dmin||t!==dmax||document.getElementById('typeFilter').value!==''||document.getElementById('yearFilter').value!=='';
   btn.classList.toggle('has-filter',active);
 }
 function scrollTabs(dir){
@@ -2782,7 +2635,7 @@ function getCoordsGlobal(nom){
     window._leafletMap=map;
 
     // Tuiles CartoDB Voyager — rendu épuré proche Google Maps
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
       subdomains:'abcd',maxZoom:19,
       attribution:'© OpenStreetMap © CartoDB'
     }).addTo(map);
@@ -2818,8 +2671,8 @@ function getCoordsGlobal(nom){
         </div>`).join('');
 
       const circle=L.circleMarker(coords,{
-        radius:r,fillColor:color,fillOpacity:0.85,
-        color:'rgba(255,255,255,0.9)',weight:2,opacity:1
+        radius:r,fillColor:color,fillOpacity:0.75,
+        color:'rgba(255,255,255,0.9)',weight:1.5,opacity:1
       });
 
       circle.bindPopup(
@@ -3040,14 +2893,13 @@ function cssVar(v){return getComputedStyle(document.documentElement).getProperty
 let drActive=false,drIdx=0,drConum='',drCms='',drYears=new Set(),drCharts={};
 
 const DR_SLIDES=[
-  {id:'cover',      title:'Couverture'},
-  {id:'kpis',       title:'Chiffres clés'},
-  {id:'evolution',  title:'Évolution mensuelle'},
-  {id:'themas',     title:'Thématiques'},
-  {id:'orienteurs', title:'Orienteurs'},
-  {id:'territoire', title:'Territoire'},
-  {id:'nonreal',    title:'Non réalisés'},
-  {id:'bilan',      title:'Bilan & Conclusion'},
+  {id:'cover',    title:'Couverture'},
+  {id:'kpis',     title:'Chiffres clés'},
+  {id:'evolution',title:'Évolution mensuelle'},
+  {id:'themas',   title:'Thématiques'},
+  {id:'orienteurs',title:'Orienteurs'},
+  {id:'territoire',title:'Territoire'},
+  {id:'bilan',    title:'Bilan & Conclusion'},
 ];
 
 function drData(){
@@ -3094,7 +2946,6 @@ function drGoTo(idx){
   else if(slide.id==='themas') drSlideThemas(c,data,PALETTE_DR);
   else if(slide.id==='orienteurs') drSlideOrienteurs(c,data,PALETTE_DR);
   else if(slide.id==='territoire') drSlideTerritoire(c,data);
-  else if(slide.id==='nonreal') drSlideNonReal(c,data);
   else if(slide.id==='bilan') drSlideBilan(c,data,allDataConum);
 }
 
@@ -3131,14 +2982,14 @@ function drSlideKpis(c,data,allDataConum){
   const communes=new Set(data.map(r=>r.commune).filter(Boolean)).size;
   // Délais ACTIONS_DATA
   const cmNormDR=normCms(drCms)||drCms;
-  const actDR=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===drConum&&(r.cms===drCms||r.cms===cmNormDR)&&r.etat==='Réalisée'&&(!drYears.size||drYears.has(r.year))):[];
+  const actDR=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===drConum):[];
   const totalOrientDR=actDR.length;
   const dR1=actDR.map(r=>r.delai_reactivite).filter(v=>v!=null&&v>=0);
   const dR2=actDR.map(r=>r.delai_total).filter(v=>v!=null&&v>=0);
   const moyDR1=dR1.length?Math.round(dR1.reduce((a,b)=>a+b,0)/dR1.length):null;
   const moyDR2=dR2.length?Math.round(dR2.reduce((a,b)=>a+b,0)/dR2.length):null;
   const hasActDR=ACTIONS_DATA&&ACTIONS_DATA.length>0;
-  const txC=hasActDR&&totalOrientDR>0?pct(totalOrientDR,data.length):null;
+  const txC=hasActDR&&totalOrientDR>0?pct(actDR.filter(r=>r.etat==='Réalisée').length,totalOrientDR):null;
   const themas=Object.entries(countThemas(data));
   const topThema=themas[0]?.[0]||'—';
   const topN=themas[0]?.[1]||0;
@@ -3158,8 +3009,9 @@ function drSlideKpis(c,data,allDataConum){
     <div style="padding:10px 0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px;color:var(--text)">Chiffres clés</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:24px">${drConum} · ${drCms}</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px">
         ${kpi(data.length,'Accompagnements',`${partCN}% activité CN`,'var(--blue)')}
+        ${kpi(hasActDR?totalOrientDR:'—','Orientations TS',hasActDR?'total reçues':'import requis','var(--green)')}
         ${kpi(oriCount,'Orienteurs actifs','travailleurs sociaux','var(--orange)')}
         ${kpi(communes,'Communes','couvertes','var(--cyan)')}
         ${(()=>{const r48=actDR.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0&&r.delai_reactivite<=2).length;const t48=actDR.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0).length;const p48=t48>=20?Math.round(r48/t48*100):null;const col=p48===null?'var(--muted)':p48>=95?'var(--green)':p48>=85?'var(--orange)':'var(--red)';return kpi(hasActDR&&p48!==null?p48+'%':t48<20&&hasActDR?'<20 cas':'—','Réactivité 48h',hasActDR&&p48!==null?r48+'/'+t48+' contacts':'volume insuffisant',col);})()}
@@ -3176,49 +3028,28 @@ function drSlideKpis(c,data,allDataConum){
 
 // ── SLIDE ÉVOLUTION ──
 function drSlideEvol(c,data,palette){
-  // Récupérer toutes les données CONUM×CMS sans filtre années pour le N-1
-  const cmNormEvol=normCms(drCms)||drCms;
-  const allDataCmsEvol=DATA.filter(r=>r.conum===drConum&&(r.cms===drCms||r.cms===cmNormEvol));
-  const years=drYears.size?[...drYears].sort():[...new Set(data.map(r=>r.date_demande.slice(0,4)))].sort();
-  const yCur=years[years.length-1];
-  const allYearsTotal=[...new Set(allDataCmsEvol.map(r=>r.date_demande.slice(0,4)))].sort();
-  const yCurIdx=allYearsTotal.indexOf(yCur);
-  const yPrevEvol=years.length===1&&yCurIdx>0?allYearsTotal[yCurIdx-1]:null;
-
   c.innerHTML=`
     <div style="padding:10px 0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px">Évolution mensuelle</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:24px">${drConum} · ${drCms}${yPrevEvol?' · '+yCur+' vs '+yPrevEvol:''}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:24px">${drConum} · ${drCms}</div>
       <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px">
         <canvas id="dr-ch-evol" style="max-height:380px"></canvas>
       </div>
     </div>`;
 
+  const years=drYears.size?[...drYears].sort():[...new Set(data.map(r=>r.date_demande.slice(0,4)))].sort();
   const allMonths=MONTH_FR;
-
-  // Si une seule année sélectionnée, ajouter automatiquement le N-1
-  let datasets;
-  if(yPrevEvol){
-    const colCur=palette[0], colPrev='#6b7fa0';
-    const valsCur=allMonths.map((_,mi)=>data.filter(r=>r.date_demande.slice(0,4)===yCur&&parseInt(r.date_demande.slice(5,7))-1===mi).length);
-    const valsPrev=allMonths.map((_,mi)=>allDataCmsEvol.filter(r=>r.date_demande.slice(0,4)===yPrevEvol&&parseInt(r.date_demande.slice(5,7))-1===mi).length);
-    datasets=[
-      {label:yCur,data:valsCur,backgroundColor:colCur+'55',borderColor:colCur,borderWidth:1.5,borderRadius:4,borderSkipped:false,type:'bar'},
-      {label:yPrevEvol,data:valsPrev,backgroundColor:colPrev+'33',borderColor:colPrev,borderWidth:1.5,borderRadius:4,borderSkipped:false,type:'bar'},
-    ];
-  } else {
-    datasets=years.map((yr,i)=>{
-      const col=palette[i%palette.length];
-      const vals=allMonths.map((_,mi)=>data.filter(r=>r.date_demande.slice(0,4)===yr&&parseInt(r.date_demande.slice(5,7))-1===mi).length);
-      return{label:yr,data:vals,backgroundColor:col+'33',borderColor:col,borderWidth:2,pointRadius:4,pointHoverRadius:6,fill:years.length===1,tension:.35};
-    });
-  }
+  const datasets=years.map((yr,i)=>{
+    const col=palette[i%palette.length];
+    const vals=allMonths.map((_,mi)=>data.filter(r=>r.date_demande.slice(0,4)===yr&&parseInt(r.date_demande.slice(5,7))-1===mi).length);
+    return{label:yr,data:vals,backgroundColor:col+'33',borderColor:col,borderWidth:2,pointRadius:4,pointHoverRadius:6,fill:years.length===1,tension:.35};
+  });
 
   drCharts['evol']=new Chart(document.getElementById('dr-ch-evol'),{
-    type:yPrevEvol?'bar':(years.length===1?'bar':'line'),
-    data:{labels:allMonths,datasets:(!yPrevEvol&&years.length===1)?[{...datasets[0],type:'bar',backgroundColor:palette[0]+'55',borderRadius:6,borderSkipped:false}]:datasets},
+    type: years.length===1?'bar':'line',
+    data:{labels:allMonths,datasets:years.length===1?[{...datasets[0],type:'bar',backgroundColor:palette[0]+'55',borderRadius:6,borderSkipped:false}]:datasets},
     options:{responsive:true,maintainAspectRatio:true,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{color:'#dde6f5',font:{size:11},boxWidth:10,padding:12}}},
+      plugins:{legend:{labels:{color:cssVar('--text'),font:{size:11},boxWidth:10,padding:12}}},
       scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{color:cssVar('--muted'),font:{size:11}}},
               y:{grid:{color:'rgba(128,128,128,.1)'},beginAtZero:true,ticks:{color:cssVar('--muted'),font:{size:11}}}}}
   });
@@ -3230,7 +3061,7 @@ function drSlideThemas(c,data,palette){
     <div style="padding:10px 0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px">Thématiques traitées</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:24px">${drConum} · ${drCms}</div>
-      <div style="display:grid;grid-template-columns:1fr;gap:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px">
           <canvas id="dr-ch-thema-donut" style="max-height:300px"></canvas>
         </div>
@@ -3285,9 +3116,8 @@ function drSlideTerritoire(c,data){
     <div style="padding:10px 0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px">Territoire d'intervention</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:16px">${drConum} · ${drCms}</div>
-      <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative">
+      <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden">
         <div id="dr-map" style="height:420px;width:100%"></div>
-        <button id="btn-dr-map-fs" onclick="toggleDrMapFullscreen()" title="Plein écran">⤢</button>
       </div>
     </div>`;
 
@@ -3303,7 +3133,7 @@ function drSlideTerritoire(c,data){
 
     if(window._drMap){try{window._drMap.remove();}catch(e){}}
     const map=L.map('dr-map',{center:[44.35,0.62],zoom:9,zoomControl:true,attributionControl:false});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19}).addTo(map);
     window._drMap=map;
 
     // Conteneur dimensionné : on cale le moteur de rendu AVANT de poser les vecteurs
@@ -3330,7 +3160,7 @@ function drSlideTerritoire(c,data){
       const coords=coordsFor(nom);
       if(!coords)return;
       const r=Math.max(6,Math.sqrt(n/maxV)*28);
-      const circle=L.circleMarker(coords,{radius:r,fillColor:'#2563eb',fillOpacity:.85,color:'#ffffff',weight:2});
+      const circle=L.circleMarker(coords,{radius:r,fillColor:'#3b82f6',fillOpacity:.75,color:'#fff',weight:1.5});
       circle.bindPopup(`<b>${nom}</b><br>${n} accompagnement${n>1?'s':''}`);
       circle._labelTotal=n;
       circle.addTo(map);
@@ -3354,192 +3184,77 @@ function drSlideTerritoire(c,data){
   })(0);
 }
 
-// ── SLIDE NON RÉALISÉS ──
-function drSlideNonReal(c,data){
-  const cmNormNR=normCms(drCms)||drCms;
-  const actNR=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===drConum&&(r.cms===drCms||r.cms===cmNormNR)&&(!drYears.size||drYears.has(r.year))):[];
-  const real=actNR.filter(r=>r.etat==='Réalisée').length;
-  const nonReal=actNR.filter(r=>r.etat==='Non réalisée').length;
-  const encours=actNR.filter(r=>r.etat==='En cours').length;
-  const total=real+nonReal+encours;
-  const hasAct=actNR.length>0;
-
-  if(!hasAct){
-    c.innerHTML=`<div style="padding:40px;text-align:center;color:var(--muted)">
-      <div style="font-size:40px;margin-bottom:16px">📊</div>
-      <div style="font-size:16px;font-weight:600;margin-bottom:8px">Données non disponibles</div>
-      <div style="font-size:12px">Importe le fichier Etat_Actions pour afficher les non réalisés.</div>
-    </div>`;
-    return;
-  }
-
-  // Évolution mensuelle des non réalisés
-  const months=[...new Set(actNR.map(r=>r.date).filter(Boolean))].sort();
-  const nrByMonth=months.map(m=>actNR.filter(r=>r.date===m&&r.etat==='Non réalisée').length);
-  const realByMonth=months.map(m=>actNR.filter(r=>r.date===m&&r.etat==='Réalisée').length);
-  const txNR=total>0?pct(nonReal,total):0;
-  const txNRColor=txNR<=10?'var(--green)':txNR<=20?'var(--orange)':'var(--red)';
-
-  const chartId='ch-dr-nonreal';
-  c.innerHTML=`
-    <div style="padding:10px 0">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px">Non réalisés</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:20px">${drConum} · ${drCms} · Lapins & excusés</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px">
-        ${[
-          [total,'Total accompagnements','var(--blue)'],
-          [real,'Réalisés','var(--green)'],
-          [nonReal,'Non réalisés','var(--red)'],
-          [txNR+'%','Taux non réalisation',txNRColor],
-        ].map(([v,l,col])=>`
-          <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;border-top:2px solid ${col}">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;color:${col}">${v}</div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-top:6px">${l}</div>
-          </div>`).join('')}
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="dot" style="background:var(--red)"></span>Évolution mensuelle — Réalisés vs Non réalisés</div>
-        <canvas id="${chartId}" style="max-height:240px"></canvas>
-      </div>
-    </div>`;
-
-  drCharts[chartId]=new Chart(document.getElementById(chartId),{
-    type:'bar',
-    data:{
-      labels:months.map(monthLabel),
-      datasets:[
-        {label:'Réalisés',data:realByMonth,backgroundColor:'rgba(16,185,129,.55)',borderColor:'#10b981',borderWidth:1,borderRadius:4,borderSkipped:false,stack:'s'},
-        {label:'Non réalisés',data:nrByMonth,backgroundColor:'rgba(239,68,68,.55)',borderColor:'#ef4444',borderWidth:1,borderRadius:4,borderSkipped:false,stack:'s'},
-      ]
-    },
-    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'bottom',labels:{color:'#dde6f5',font:{size:10},padding:12,boxWidth:10}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#6b7fa0',font:{size:10}}},y:{stacked:true,grid:{color:'rgba(37,48,71,.5)'},beginAtZero:true,ticks:{color:'#6b7fa0'}}}}
-  });
-}
-
 // ── SLIDE BILAN ──
 function drSlideBilan(c,data,allDataConum){
   const total=data.length;
+  const done=data.filter(r=>r.date_action).length;
+  const txC=pct(done,total);
   const communes=new Set(data.map(r=>r.commune).filter(Boolean)).size;
   const orienteurs=new Set(data.map(r=>r.orienteur).filter(Boolean)).size;
-  // Évolution trimestrielle
   const months=[...new Set(data.map(r=>r.date_demande.slice(0,7)))].sort().reverse();
   const nRec=data.filter(r=>months.slice(0,3).includes(r.date_demande.slice(0,7))).length;
   const nPre=data.filter(r=>months.slice(3,6).includes(r.date_demande.slice(0,7))).length;
   const delta=nPre>0?Math.round((nRec-nPre)/nPre*100):0;
   const trend=delta>=0?`+${delta}%`:`${delta}%`;
   const trendColor=delta>=0?'var(--green)':'var(--orange)';
-  // N vs N-1 — utiliser DATA brut sans filtre d'années pour avoir l'historique complet
-  const cmNormYoY=normCms(drCms)||drCms;
-  const allDataCms=DATA.filter(r=>r.conum===drConum&&(r.cms===drCms||r.cms===cmNormYoY));
-  const allYearsTotal=[...new Set(allDataCms.map(r=>r.date_demande.slice(0,4)))].sort();
-  const allYears=[...new Set(data.map(r=>r.date_demande.slice(0,4)))].sort();
-  const yCur=allYears[allYears.length-1];
-  // yPrev = année précédant yCur dans l'historique complet
-  const yCurIdx=allYearsTotal.indexOf(yCur);
-  const yPrev=yCurIdx>0?allYearsTotal[yCurIdx-1]:null;
-  const nCur=data.filter(r=>r.date_demande.startsWith(yCur)).length;
-  const nPrev=yPrev?allDataCms.filter(r=>r.date_demande.startsWith(yPrev)).length:null;
-  const deltaYoY=nPrev?Math.round((nCur-nPrev)/nPrev*100):null;
-  const trendYoY=deltaYoY!==null?(deltaYoY>=0?`+${deltaYoY}%`:`${deltaYoY}%`):'—';
-  const trendYoYColor=deltaYoY===null?'var(--muted)':deltaYoY>=0?'var(--green)':'var(--orange)';
   const themas=Object.entries(countThemas(data));
   const topThema=themas[0]?.[0]||'—';
   const topN=themas[0]?.[1]||0;
   const topThemaPct=pct(topN,total);
   const partCN=pct(total,allDataConum.length);
   const years=drYears.size?[...drYears].sort():[...new Set(data.map(r=>r.date_demande.slice(0,4)))].sort();
-  // Depuis ACTIONS_DATA : réactivité + non réalisés + taux réalisation réel
+  // Délais réels depuis ACTIONS_DATA
   const cmNormBil=normCms(drCms)||drCms;
-  const actAllBil=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===drConum&&(r.cms===drCms||r.cms===cmNormBil)&&(!drYears.size||drYears.has(r.year))):[];
-  const actBil=actAllBil.filter(r=>r.etat==='Réalisée');
-  const actNonReal=actAllBil.filter(r=>r.etat==='Non réalisée');
-  const actTotal=actBil.length+actNonReal.length;
-  const txReel=actTotal>0?pct(actBil.length,actTotal):null;
-  const txNonReal=actTotal>0?pct(actNonReal.length,actTotal):null;
+  const actBil=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===drConum):[];
+  const dBil1=actBil.map(r=>r.delai_reactivite).filter(v=>v!=null&&v>=0);
+  const dBil2=actBil.map(r=>r.delai_total).filter(v=>v!=null&&v>=0);
+  const moyBil1=dBil1.length?Math.round(dBil1.reduce((a,b)=>a+b,0)/dBil1.length):null;
+  const moyBil2=dBil2.length?Math.round(dBil2.reduce((a,b)=>a+b,0)/dBil2.length):null;
   const hasActBil=ACTIONS_DATA&&ACTIONS_DATA.length>0;
   const delaisBil=data.filter(r=>r.delai!==null&&r.delai>=0).map(r=>r.delai);
   const delaiMoy=delaisBil.length?Math.round(delaisBil.reduce((a,b)=>a+b,0)/delaisBil.length):null;
-
-  const kpis=[
-    [total,'Accompagnements','var(--blue)'],
-    [trend,'Évol. trimestrielle',trendColor],
-    [yPrev?trendYoY+'<br><span style=\"font-size:10px;color:var(--muted)\">'+yCur+' vs '+yPrev+'</span>':'—','N vs N-1',trendYoYColor],
-    [communes,'Communes','var(--cyan)'],
-    [orienteurs,'Orienteurs','var(--orange)'],
-    [(()=>{const r48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0&&r.delai_reactivite<=2).length;const t48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0).length;return hasActBil&&t48>=20?Math.round(r48/t48*100)+'%':t48<20&&hasActBil?'<20 cas':'—';})(),'Réactivité 48h','var(--purple)'],
-  ];
-  if(hasActBil&&actTotal>0){
-    kpis.push([txNonReal+'%','Non réalisés','var(--red)']);
-    kpis.push([txReel!==null?txReel+'%':'—','Taux réalisation','var(--green)']);
-  }
 
   c.innerHTML=`
     <div style="padding:10px 0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px">Bilan & Perspectives</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:20px">${drConum} · ${drCms} · ${years.join(', ')}</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px">
-        ${kpis.map(([v,l,col])=>`
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+        ${[
+          [total,'Accompagnements','var(--blue)'],
+          [hasActBil?actBil.length:'—','Orientations TS','var(--green)'],
+          [trend,'Évolution trimestrielle',trendColor],
+          [communes,'Communes','var(--cyan)'],
+          [orienteurs,'Orienteurs','var(--orange)'],
+          [(()=>{const r48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0&&r.delai_reactivite<=2).length;const t48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0).length;return hasActBil&&t48>=20?Math.round(r48/t48*100)+'%':t48<20&&hasActBil?'<20 cas':'—';})(),'Réactivité 48h','var(--purple)'],
+        ].map(([v,l,col])=>`
           <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;border-top:2px solid ${col}">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;color:${col};line-height:1.2">${v}</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;color:${col}">${v}</div>
             <div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-top:6px">${l}</div>
           </div>`).join('')}
       </div>
-      ${yPrev?`
-      <div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px">
-        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">📊 Accompagnements — ${yCur} vs ${yPrev} par mois</div>
-        <canvas id="dr-ch-yoy-bilan" style="max-height:200px"></canvas>
-      </div>`:''}
+
       <div style="background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(16,185,129,.06));border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:22px 26px;line-height:1.9;font-size:13px;color:var(--text)">
         <p style="margin-bottom:10px">
-          Au sein de la structure <strong style="color:var(--blue)">${drCms}</strong>, <strong>${drConum}</strong> a accompagné
+          Au sein de la structure <strong style="color:var(--blue)">${drCms}</strong>, ${drConum.split(' ')[0]} a accompagné
           <strong>${total} bénéficiaires</strong> sur <strong>${communes} communes</strong> du territoire,
           représentant <strong style="color:var(--cyan)">${partCN}% de son activité CN totale</strong> sur cette période.
         </p>
         <p style="margin-bottom:10px">
           La thématique dominante est <strong style="color:var(--orange)">${topThema}</strong>
-          (${topN} demandes · ${topThemaPct}% du total).
-          ${hasActBil&&txReel!==null?`Le taux de réalisation atteint <strong style="color:var(--green)">${txReel}%</strong>${txNonReal>0?` avec <strong style="color:var(--red)">${txNonReal}% de non réalisés</strong> (lapins / excusés)`:''}.`:`Taux de complétion : <strong>${pct(data.filter(r=>r.date_action).length,total)}%</strong>.`}
-          Délai moyen : <strong>${delaiMoy!=null?delaiMoy+' jours':"moins d'une semaine"}</strong>.
+          (${topN} demandes · ${topThemaPct}% du total), confirmant les besoins prioritaires du public accompagné.
+          Le taux de complétion des dossiers atteint <strong>${txC}%</strong>
+          avec un délai moyen de prise en charge de <strong>${delaiMoy!=null?delaiMoy+' jours':'moins d\'une semaine'}</strong>.
         </p>
         <p>
-          Évolution <strong style="color:${trendColor}">${trend}</strong> sur le dernier trimestre${deltaYoY!==null?` et <strong style="color:${trendYoYColor}">${trendYoY}</strong> vs ${yPrev}`:''}.
-          Avec <strong>${orienteurs} travailleurs sociaux orienteurs</strong> mobilisés,
-          ${(()=>{const r48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0&&r.delai_reactivite<=2).length;const t48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0).length;const p48=hasActBil&&t48>=20?Math.round(r48/t48*100):null;return p48!==null?`réactivité 48h à <strong style="color:${p48>=95?'var(--green)':p48>=85?'var(--orange)':'var(--red)'}">${p48}%</strong> —`:'';})()}
-          l'<strong style="color:var(--green)">engagement remarquable</strong> de <strong>${drConum}</strong>
-          et son rôle <strong>essentiel dans l'inclusion numérique des publics fragiles</strong> du Lot-et-Garonne. 🎯
+          L'activité affiche une évolution de <strong style="color:${trendColor}">${trend}</strong> sur le dernier trimestre,
+          avec <strong>${orienteurs} travailleurs sociaux orienteurs</strong> mobilisés.
+          ${(()=>{const r48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0&&r.delai_reactivite<=2).length;const t48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0).length;const p48=hasActBil&&t48>=20?Math.round(r48/t48*100):null;return p48!==null?`Le taux de réactivité 48h atteint <strong style="color:${p48>=95?'var(--green)':p48>=85?'var(--orange)':'var(--red)'}">${p48}%</strong> des prises de contact effectuées dans le délai réglementaire.`:'';})()}
+          Ces résultats témoignent de l'<strong style="color:var(--green)">engagement remarquable</strong> de ${drConum.split(' ')[0]}
+          et de son rôle <strong>essentiel dans l'inclusion numérique des publics fragiles</strong> du Lot-et-Garonne. 🎯
         </p>
       </div>
     </div>`;
-
-  // Graphe N vs N-1 si deux années disponibles
-  if(yPrev){
-    const MONTH_LABELS=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-    const curVals=MONTH_LABELS.map((_,mi)=>data.filter(r=>r.date_demande.slice(0,4)===yCur&&parseInt(r.date_demande.slice(5,7))-1===mi).length);
-    const prevVals=MONTH_LABELS.map((_,mi)=>allDataCms.filter(r=>r.date_demande.slice(0,4)===yPrev&&parseInt(r.date_demande.slice(5,7))-1===mi).length);
-    const colCur='#3b82f6', colPrev='#6b7fa0';
-    const chartEl=document.getElementById('dr-ch-yoy-bilan');
-    if(chartEl){
-      drCharts['yoy-bilan']=new Chart(chartEl,{
-        type:'bar',
-        data:{
-          labels:MONTH_LABELS,
-          datasets:[
-            {label:yCur,data:curVals,backgroundColor:colCur+'99',borderColor:colCur,borderWidth:1.5,borderRadius:4,borderSkipped:false},
-            {label:yPrev,data:prevVals,backgroundColor:colPrev+'55',borderColor:colPrev,borderWidth:1.5,borderRadius:4,borderSkipped:false},
-          ]
-        },
-        options:{
-          responsive:true,maintainAspectRatio:true,
-          interaction:{mode:'index',intersect:false},
-          plugins:{legend:{position:'bottom',labels:{color:'#dde6f5',font:{size:10},boxWidth:10,padding:10}}},
-          scales:{
-            x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:10}}},
-            y:{grid:{color:'rgba(37,48,71,.5)'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:10}}}
-          }
-        }
-      });
-    }
-  }
 }
 
 // ── LANCEMENT / ARRÊT ──
@@ -3602,84 +3317,6 @@ function toggleTheme(){
     }
   }catch(e){}
 })();
-</script>
-<div id="dr-print-container" style="display:none"></div>
-
-<script>
-async function exportDiapoPDF(){
-  const btn=document.getElementById('btn-dr-pdf');
-  btn.textContent='⏳ Génération…';btn.disabled=true;
-  const container=document.getElementById('dr-print-container');
-  container.innerHTML='';
-
-  const savedIdx=drIdx;
-  const c=document.getElementById('dr-content');
-  const allDataConum=getFiltered().filter(r=>r.conum===drConum);
-  const PALETTE_DR=['#3b82f6','#f97316','#10b981','#8b5cf6','#22d3ee','#eab308','#ef4444','#ec4899','#06b6d4','#84cc16'];
-
-  for(let i=0;i<DR_SLIDES.length;i++){
-    const slide=DR_SLIDES[i];
-    // Sauter la slide carte (non imprimable facilement)
-    if(slide.id==='territoire') continue;
-
-    drDestroyCharts();
-    c.innerHTML='';
-    const data=drData();
-
-    // Rendre la slide dans dr-content
-    if(slide.id==='cover') drSlideCover(c,data,allDataConum);
-    else if(slide.id==='kpis') drSlideKpis(c,data,allDataConum);
-    else if(slide.id==='evolution') drSlideEvol(c,data,PALETTE_DR);
-    else if(slide.id==='themas') drSlideThemas(c,data,PALETTE_DR);
-    else if(slide.id==='orienteurs') drSlideOrienteurs(c,data,PALETTE_DR);
-    else if(slide.id==='nonreal') drSlideNonReal(c,data);
-    else if(slide.id==='bilan') drSlideBilan(c,data,allDataConum);
-
-    // Attendre le rendu des charts
-    await new Promise(r=>setTimeout(r,600));
-
-    // Cloner le contenu dans le conteneur print
-    const page=document.createElement('div');
-    page.className='dr-print-page';
-    page.innerHTML=`<div style="font-size:9px;color:#6b7fa0;margin-bottom:12px;font-family:monospace">${drConum} · ${drCms} · ${slide.title}</div>`;
-
-    // Convertir les canvas en images pour l'impression
-    const clone=c.firstElementChild?c.firstElementChild.cloneNode(true):document.createElement('div');
-    // Remplacer les canvas par des img
-    const canvases=c.querySelectorAll('canvas');
-    const cloneCanvases=clone.querySelectorAll('canvas');
-    canvases.forEach((cv,idx)=>{
-      if(cloneCanvases[idx]){
-        try{
-          const img=document.createElement('img');
-          img.src=cv.toDataURL('image/png');
-          img.style.cssText=cv.style.cssText||'max-width:100%';
-          img.style.maxHeight='300px';
-          cloneCanvases[idx].parentNode.replaceChild(img,cloneCanvases[idx]);
-        }catch(e){}
-      }
-    });
-
-    page.appendChild(clone);
-    container.appendChild(page);
-  }
-
-  // Restaurer la slide courante
-  drGoTo(savedIdx);
-
-  // Forcer le mode clair sur le body pendant l'impression
-  const wasLight=document.body.classList.contains('light-mode');
-  document.body.classList.add('light-mode');
-
-  setTimeout(()=>{
-    window.print();
-    setTimeout(()=>{
-      if(!wasLight)document.body.classList.remove('light-mode');
-      btn.textContent='⬇ PDF';btn.disabled=false;
-      container.innerHTML='';
-    },500);
-  },300);
-}
 </script>
 </body>
 </html>
