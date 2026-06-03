@@ -874,7 +874,7 @@ let activeYears=new Set(), ALL_YEARS=[], pendingData=null;
 let DATA=[], dataSource='embedded', importMeta=null;
 
 // EXCEL DATE
-function excelDate(v){const n=parseFloat(v);if(isNaN(n)||n<1)return null;const d=new Date((n-25569)*86400*1000);return d.toISOString().slice(0,10);}
+function excelDate(v){if(!v&&v!==0)return null;if(typeof v==='string'){const m=v.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;const m2=v.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);if(m2)return v.trim().slice(0,10);}const n=parseFloat(v);if(isNaN(n)||n<1)return null;const d=new Date((n-25569)*86400*1000);return d.toISOString().slice(0,10);}
 
 // PARSE XLS
 function parseXlsText(text){
@@ -888,7 +888,7 @@ function parseXlsText(text){
   const iCommune=ci('commune'),iMotif=ci('motif'),iType=ci('type action',"type d'action"),iLieu=ci('lieu / cms','lieu/cms'),iDateAct=ci('date action'),iOrienteur=ci('orienteur','prescripteur'),iDateDem=ci('date demande'),iConum=ci('conseiller num'),iThemas=ci('thematique'),iBenef=ci('beneficiaire connu','benef connu'),iUrgence=ci('urgence'),iEtat=ci("libelle de l'etat","etat de l'action"),iDatePlanif=ci('date planif','date planifier'),iDateReal=ci('date de realisation','date reelle','date realisation');
   if(iDateDem<0)throw new Error(`Colonne "Date demande" introuvable. En-têtes : ${hdrsRaw.slice(0,8).join(' | ')}`);
   const EXCL=new Set(['Reservation','Ateliers']);
-  const ETAT_MAP={'en cours':'En attente','en attente':'En attente','realisee':'\u00e9alis\u00e9e','r\u00e9alis\u00e9e':'R\u00e9alis\u00e9e','non realisee':'Non r\u00e9alis\u00e9e','non r\u00e9alis\u00e9e':'Non r\u00e9alis\u00e9e','annulee':'Annul\u00e9e','annul\u00e9e':'Annul\u00e9e'};
+  const ETAT_MAP={'en cours':'En attente','en attente':'En attente','realisee':'R\u00e9alis\u00e9e','r\u00e9alis\u00e9e':'R\u00e9alis\u00e9e','non realisee':'Non r\u00e9alis\u00e9e','non r\u00e9alis\u00e9e':'Non r\u00e9alis\u00e9e','annulee':'Annul\u00e9e','annul\u00e9e':'Annul\u00e9e'};
   const records=[],warnings=[];
   for(let i=1;i<lines.length;i++){
     const cols=lines[i].split('\t');
@@ -1683,52 +1683,22 @@ function parseXlsxBinary(arraybuffer){
   const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
   if(rows.length<2)throw new Error('Fichier vide');
   const records=[],warnings=[];
-
   function xlDate(v){
     if(!v&&v!==0)return null;
-    // Format DD/MM/YYYY (export GDIN texte)
-    if(typeof v==='string'){
-      const m=v.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
-    }
+    if(typeof v==='string'){const m=v.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
     const n=parseFloat(v);
     if(isNaN(n)||n<1)return null;
     const d=new Date((n-25569)*86400*1000);
     return d.toISOString().slice(0,10);
   }
-
-  // ── Détection automatique des colonnes par en-tête ──
-  // Accepte la structure brute GDIN (20 col) ET la structure réordonnée (22 col)
-  function norm(s){return String(s).toLowerCase().replace(/\s+/g,' ').trim()
-    .replace(/[éèê]/g,'e').replace(/[àâ]/g,'a').replace(/[ùû]/g,'u')
-    .replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[']/g,"'");}
-  const hdrs=rows[0].map(norm);
-  function ci(...hints){return hdrs.findIndex(h=>hints.some(hint=>h.includes(norm(hint))));}
-
-  const iCommune   = ci('commune');
-  const iMotif     = ci('motif');
-  const iType      = ci('type action','type d\'action');
-  const iLieu      = ci('lieu / cms','lieu/cms','lieu ou');
-  const iDateAct   = ci('date action','date action (saisie)');
-  const iOrienteur = ci('orienteur','prescripteur');
-  const iDateDem   = ci('date demande');
-  const iConum     = ci('conseiller num');
-  const iThemas    = ci('thematique');
-  const iBenef     = ci('beneficiaire connu','benef');
-  const iUrgence   = ci('urgence');
-  const iEtat      = ci("libelle de l'etat","etat de l'action",'etat action');
-  const iDatePlanif= ci('date planif','date planifier');
-  const iDateReal  = ci('date de realisation','date reelle','date realisation');
-
-  // Validation minimale
-  if(iDateDem<0) throw new Error(`Colonne "Date demande" introuvable. En-têtes détectées : ${rows[0].slice(0,10).join(' | ')}`);
-  if(iConum<0)   throw new Error(`Colonne "Conseiller numérique" introuvable.`);
-  if(iLieu<0)    throw new Error(`Colonne "Lieu / CMS" introuvable.`);
-
+  function normH(s){return String(s).toLowerCase().replace(/\s+/g,' ').trim().replace(/[\u00e9\u00e8\u00ea]/g,'e').replace(/[\u00e0\u00e2]/g,'a').replace(/[\u00f9\u00fb]/g,'u').replace(/[\u00ee\u00ef]/g,'i').replace(/[\u00f4\u00f6]/g,'o').replace(/[\u2019\u0027]/g,"'");}
+  const hdrs=rows[0].map(normH);
+  function ci(...hints){return hdrs.findIndex(h=>hints.some(hint=>h.includes(normH(hint))));}
+  const iCommune=ci('commune'),iMotif=ci('motif'),iType=ci('type action',"type d'action"),iLieu=ci('lieu / cms','lieu/cms'),iDateAct=ci('date action'),iOrienteur=ci('orienteur','prescripteur'),iDateDem=ci('date demande'),iConum=ci('conseiller num'),iThemas=ci('thematique'),iBenef=ci('beneficiaire connu','benef connu'),iUrgence=ci('urgence'),iEtat=ci("libelle de l'etat","etat de l'action"),iDatePlanif=ci('date planif','date planifier'),iDateReal=ci('date de realisation','date reelle','date realisation');
+  if(iDateDem<0)throw new Error(`Colonne "Date demande" introuvable. En-têtes : ${rows[0].slice(0,10).join(' | ')}`);
+  if(iLieu<0)throw new Error(`Colonne "Lieu / CMS" introuvable.`);
   const EXCL=new Set(['Reservation','Ateliers']);
-  // Normalisation des états
-  const ETAT_MAP={'en cours':'En attente','en attente':'En attente','realisee':'Réalisée','réalisée':'Réalisée','non realisee':'Non réalisée','non réalisée':'Non réalisée','annulee':'Annulée','annulée':'Annulée'};
-
+  const ETAT_MAP={'en cours':'En attente','en attente':'En attente','realisee':'R\u00e9alis\u00e9e','r\u00e9alis\u00e9e':'R\u00e9alis\u00e9e','non realisee':'Non r\u00e9alis\u00e9e','non r\u00e9alis\u00e9e':'Non r\u00e9alis\u00e9e','annulee':'Annul\u00e9e','annul\u00e9e':'Annul\u00e9e'};
   for(let i=1;i<rows.length;i++){
     const cols=rows[i];
     if(cols.length<5)continue;
@@ -1736,32 +1706,17 @@ function parseXlsxBinary(arraybuffer){
     if(!dd)continue;
     const da=xlDate(iDateAct>=0?cols[iDateAct]:'')||null;
     let cms=String(iLieu>=0?cols[iLieu]||'':'').trim();
-    cms=cms.split(';')[0].trim();
-    cms=normCms(cms);
+    cms=cms.split(';')[0].trim();cms=normCms(cms);
     if(!cms)continue;
     const themas=String(iThemas>=0?cols[iThemas]||'':'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
-    for(const p of String(iType>=0?cols[iType]||'':'').split(';')){
-      const t=p.trim();
-      if(t&&!EXCL.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}
-      if(types.length>=4)break;
-    }
+    for(const p of String(iType>=0?cols[iType]||'':'').split(';')){const t=p.trim();if(t&&!EXCL.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
     const etatRaw=String(iEtat>=0?cols[iEtat]||'':'').trim();
-    const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||etatRaw||null;
+    const etatKey=etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const etat=ETAT_MAP[etatKey]||(etatRaw||null);
     const dp=iDatePlanif>=0?xlDate(cols[iDatePlanif])||null:null;
     const dr=iDateReal>=0?xlDate(cols[iDateReal])||null:null;
-    records.push({
-      date_demande:dd,date_action:da,
-      conum:String(iConum>=0?cols[iConum]||'':'').trim(),
-      cms,
-      commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),
-      themas,type_action:types,
-      orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),
-      motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),
-      benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',
-      urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',
-      etat,date_planifiee:dp,date_realisation:dr
-    });
+    records.push({date_demande:dd,date_action:da,conum:String(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide');
   return{records,warnings};
