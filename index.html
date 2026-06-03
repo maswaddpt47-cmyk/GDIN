@@ -1945,7 +1945,8 @@ function confirmImport(){
   const{records,filename}=pendingData;
   // Clé de déduplication robuste : date + conum + cms + commune + orienteur + themas triés
   function makeKey(r){
-    return `${r.date_demande}|${r.conum||''}|${r.cms||''}|${r.commune||''}|${r.orienteur||''}|${(r.themas||[]).slice().sort().join('/')}`;
+    const types=(r.type_action||[]).slice().sort().join('+');
+    return `${r.date_demande}|${r.conum||''}|${r.cms||''}|${r.commune||''}|${r.orienteur||''}|${(r.themas||[]).slice().sort().join('/')}|${types}`;
   }
   // Base : si déjà importé on fusionne, sinon on repart de zéro (pas des données intégrées)
   const base=dataSource==='imported'?DATA:[];
