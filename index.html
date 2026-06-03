@@ -892,25 +892,36 @@ let activeYears=new Set(), ALL_YEARS=[], pendingData=null;
 let DATA=[], dataSource='embedded', importMeta=null;
 
 // EXCEL DATE
-function excelDate(v){const n=parseFloat(v);if(isNaN(n)||n<1)return null;const d=new Date((n-25569)*86400*1000);return d.toISOString().slice(0,10);}
+function excelDate(v){if(!v&&v!==0)return null;if(typeof v==='string'){const m=v.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;const m2=v.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);if(m2)return v.trim().slice(0,10);}const n=parseFloat(v);if(isNaN(n)||n<1)return null;const d=new Date((n-25569)*86400*1000);return d.toISOString().slice(0,10);}
 
 // PARSE XLS
 function parseXlsText(text){
   const lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(l=>l.trim()!==''&&!l.startsWith('## Sheet:'));
   if(lines.length<2)throw new Error('Fichier vide ou format non reconnu');
-  if(lines[0].split('\t').length<10)throw new Error(`En-têtes insuffisantes : ${lines[0].split('\t').length} colonnes`);
-  const records=[], warnings=[];
+  const hdrsRaw=lines[0].split('\t');
+  if(hdrsRaw.length<5)throw new Error(`En-têtes insuffisantes : ${hdrsRaw.length} colonnes`);
+  function normH(s){return String(s).toLowerCase().replace(/\s+/g,' ').trim().replace(/[éèê]/g,'e').replace(/[àâ]/g,'a').replace(/[ùû]/g,'u').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/['\u2019]/g,"'");}
+  const hdrs=hdrsRaw.map(normH);
+  function ci(...hints){return hdrs.findIndex(h=>hints.some(hint=>h.includes(normH(hint))));}
+  const iCommune=ci('commune'),iMotif=ci('motif'),iType=ci('type action',"type d'action"),iLieu=ci('lieu / cms','lieu/cms'),iDateAct=ci('date action'),iOrienteur=ci('orienteur','prescripteur'),iDateDem=ci('date demande'),iConum=ci('conseiller num'),iThemas=ci('thematique'),iBenef=ci('beneficiaire connu','benef connu'),iUrgence=ci('urgence'),iEtat=ci("libelle de l'etat","etat de l'action"),iDatePlanif=ci('date planif','date planifier'),iDateReal=ci('date de realisation','date reelle','date realisation');
+  if(iDateDem<0)throw new Error(`Colonne "Date demande" introuvable. En-têtes : ${hdrsRaw.slice(0,8).join(' | ')}`);
+  const EXCL=new Set(['Reservation','Ateliers']);
+  const ETAT_MAP={'en cours':'En attente','en attente':'En attente','realisee':'Réalisée','réalisée':'Réalisée','non realisee':'Non réalisée','non réalisée':'Non réalisée','annulee':'Annulée','annulée':'Annulée'};
+  const records=[],warnings=[];
   for(let i=1;i<lines.length;i++){
     const cols=lines[i].split('\t');
-    if(cols.length<15)continue;
-    const dd=excelDate(cols[10]);
-    if(!dd)continue;
-    const da=excelDate(cols[8]);
-    let cms=extractDominantCms((cols[7]||'').trim());
+    if(cols.length<5)continue;
+    const dd=excelDate(iDateDem>=0?cols[iDateDem]:'');if(!dd)continue;
+    const da=excelDate(iDateAct>=0?cols[iDateAct]:'')||null;
+    let cms=extractDominantCms((iLieu>=0?cols[iLieu]||'':'').trim());
+    const themas=(iThemas>=0?cols[iThemas]||'':'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
-    const EXCL=new Set(['Reservation','Ateliers']);
-    for(const p of (cols[6]||'').split(';')){const t=p.trim();if(t&&!EXCL.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
-    records.push({date_demande:dd,date_action:da||null,conum:(cols[11]||'').trim(),cms,commune:(cols[3]||'').trim(),themas,type_action:types,orienteur:(cols[9]||'').trim(),motif:(cols[4]||'').slice(0,120).trim(),benef_connu:(cols[17]||'').trim().toLowerCase()==='oui',urgence:(cols[18]||'').trim().toLowerCase()==='oui'});
+    for(const p of (iType>=0?cols[iType]||'':'').split(';')){const t=p.trim();if(t&&!EXCL.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
+    const etatRaw=(iEtat>=0?cols[iEtat]||'':'').trim();
+    const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||(etatRaw||null);
+    const dp=iDatePlanif>=0?excelDate(cols[iDatePlanif])||null:null;
+    const dr=iDateReal>=0?excelDate(cols[iDateReal])||null:null;
+    records.push({date_demande:dd,date_action:da,conum:(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide. Vérifiez le format.');
   return{records,warnings};
@@ -952,10 +963,16 @@ function updateSourceBadge(imp,meta){const b=document.getElementById('data-sourc
 function updateCurrentSourceInfo(){const dot=document.getElementById('cs-dot'),label=document.getElementById('cs-label');if(dataSource==='imported'&&importMeta){dot.style.background='var(--green)';label.innerHTML=`<strong style="color:var(--green)">${importMeta.filename}</strong> — ${importMeta.count} enregistrements · ${importMeta.years.join(', ')} · importé le ${importMeta.date}`;}else{dot.style.background='var(--muted)';label.innerHTML=`<span style="color:var(--muted)">Données intégrées (${EMBEDDED.length} enregistrements, partiel)</span>`;}}
 
 // YEAR CHIPS
+function yrLabel(yr){
+  const maxYr=ALL_YEARS.length?ALL_YEARS[ALL_YEARS.length-1]:'';
+  if(!maxYr||!yr)return yr;
+  const diff=parseInt(maxYr)-parseInt(yr);
+  return diff===0?`${yr} (N)`:`${yr} (N-${diff})`;
+}
 function makeYearChip(yr,i,onClick){
   const col=YEAR_PALETTE[i%YEAR_PALETTE.length];
   const chip=document.createElement('button');
-  chip.className='year-chip';chip.textContent=yr;chip.dataset.yr=yr;chip.dataset.idx=i;
+  chip.className='year-chip';chip.textContent=yrLabel(yr);chip.dataset.yr=yr;chip.dataset.idx=i;
   chip.style.borderColor=col;
   chip.style.color=activeYears.has(yr)?'#fff':'var(--muted)';
   chip.style.background=activeYears.has(yr)?col+'55':'var(--s2)';
@@ -1108,7 +1125,7 @@ function renderEvolution(){
       return vals;
     }
 
-    note.textContent=years.map(y=>`${y} : ${dataForEvol.filter(r=>r.date_demande.startsWith(y)).length}`).join(' · ');
+    note.textContent=years.map(y=>`${yrLabel(y)} : ${dataForEvol.filter(r=>r.date_demande.startsWith(y)).length}`).join(' · ');
 
     let datasets=[];
     const isStacked = evolModeVal!=='total';
@@ -1118,7 +1135,7 @@ function renderEvolution(){
       datasets=years.map((yr)=>{
         const col=yearColor(yr);
         return{
-          label:yr,
+          label:yrLabel(yr),
           data:monthVals(dataForEvol,yr),
           backgroundColor:col+'66',borderColor:col,
           borderWidth:1.5,borderRadius:3,borderSkipped:false
@@ -1277,7 +1294,7 @@ function renderEvolution(){
   ALL_YEARS.filter(y=>activeYears.has(y)).forEach(yr=>{
     const yd=allF.filter(r=>r.date_demande.startsWith(yr));if(!yd.length)return;
     const noA=yd.filter(r=>!r.date_action).length;
-    tbody+=`<tr class="total-row"><td class="mono" style="color:${yearColor(yr)}">TOTAL ${yr}</td><td></td><td class="mono">${yd.length}</td><td class="mono">${pct(yd.length-noA,yd.length)}%</td>`;
+    tbody+=`<tr class="total-row"><td class="mono" style="color:${yearColor(yr)}">TOTAL ${yrLabel(yr)}</td><td></td><td class="mono">${yd.length}</td><td class="mono">${pct(yd.length-noA,yd.length)}%</td>`;
     conumNames.forEach(cn=>{tbody+=`<td class="mono ${conumClass(cn)}">${yd.filter(r=>r.conum===cn).length}</td>`;});
     tbody+=`</tr>`;
   });
@@ -1610,7 +1627,7 @@ function renderRapport(){
         const col=YEAR_PALETTE[i%YEAR_PALETTE.length];
         const vals=Array(12).fill(0);
         actData.filter(r=>r.year===yr&&r.etat==='Non réalisée').forEach(r=>{if(r.date){const m=parseInt(r.date.slice(5,7))-1;if(m>=0)vals[m]++;}});
-        return{label:yr,data:vals,backgroundColor:col+'66',borderColor:col,borderWidth:1.5,borderRadius:3,borderSkipped:false};
+        return{label:yrLabel(yr),data:vals,backgroundColor:col+'66',borderColor:col,borderWidth:1.5,borderRadius:3,borderSkipped:false};
       })},
       options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{color:'#dde6f5',font:{size:9},boxWidth:7,padding:5}}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:9}}},y:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0',font:{size:9}}}}}
     });
@@ -1794,46 +1811,49 @@ function isBinaryXls(file){
 }
 
 function parseXlsxBinary(arraybuffer){
-  const wb=XLSX.read(arraybuffer,{type:'array',cellDates:false});
-  const ws=wb.Sheets[wb.SheetNames[0]];
-  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-  if(rows.length<2)throw new Error('Fichier vide');
-  // Skip header row (row 0), parse data from row 1
+  // Essayer type:'array' puis fallback type:'binary' pour les vieux .xls CDFV2
+  let rows;
+  try{
+    const wb=XLSX.read(arraybuffer,{type:'array',cellDates:false});
+    rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    if(!rows.length||rows[0].length<5){
+      const bin=Array.from(new Uint8Array(arraybuffer)).map(b=>String.fromCharCode(b)).join('');
+      const wb2=XLSX.read(bin,{type:'binary',cellDates:false});
+      rows=XLSX.utils.sheet_to_json(wb2.Sheets[wb2.SheetNames[0]],{header:1,defval:''});
+    }
+  }catch(e){
+    const bin=Array.from(new Uint8Array(arraybuffer)).map(b=>String.fromCharCode(b)).join('');
+    const wb2=XLSX.read(bin,{type:'binary',cellDates:false});
+    rows=XLSX.utils.sheet_to_json(wb2.Sheets[wb2.SheetNames[0]],{header:1,defval:''});
+  }
+  if(!rows||rows.length<2)throw new Error('Fichier vide');
   const records=[],warnings=[];
   function xlDate(v){
     if(!v&&v!==0)return null;
-    const n=parseFloat(v);
-    if(isNaN(n)||n<1)return null;
-    const d=new Date((n-25569)*86400*1000);
-    return d.toISOString().slice(0,10);
+    if(typeof v==='string'){const m=v.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;}
+    const n=parseFloat(v);if(isNaN(n)||n<1)return null;
+    const d=new Date((n-25569)*86400*1000);return d.toISOString().slice(0,10);
   }
+  function normH(s){return String(s).toLowerCase().replace(/\s+/g,' ').trim().replace(/[éèê]/g,'e').replace(/[àâ]/g,'a').replace(/[ùû]/g,'u').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/['\u2019]/g,"'");}
+  const hdrs=rows[0].map(normH);
+  function ci(...hints){return hdrs.findIndex(h=>hints.some(hint=>h.includes(normH(hint))));}
+  const iCommune=ci('commune'),iMotif=ci('motif'),iType=ci('type action',"type d'action"),iLieu=ci('lieu / cms','lieu/cms'),iDateAct=ci('date action'),iOrienteur=ci('orienteur','prescripteur'),iDateDem=ci('date demande'),iConum=ci('conseiller num'),iThemas=ci('thematique'),iBenef=ci('beneficiaire connu','benef connu'),iUrgence=ci('urgence'),iEtat=ci("libelle de l'etat","etat de l'action"),iDatePlanif=ci('date planif','date planifier'),iDateReal=ci('date de realisation','date reelle','date realisation');
+  if(iDateDem<0)throw new Error(`Colonne "Date demande" introuvable. En-têtes : ${rows[0].slice(0,10).join(' | ')}`);
+  const ETAT_MAP={'en cours':'En attente','en attente':'En attente','realisee':'Réalisée','réalisée':'Réalisée','non realisee':'Non réalisée','non réalisée':'Non réalisée','annulee':'Annulée','annulée':'Annulée'};
   for(let i=1;i<rows.length;i++){
-    const cols=rows[i];
-    if(cols.length<15)continue;
-    const dd=xlDate(cols[10]);
-    if(!dd)continue;
-    const da=xlDate(cols[8]);
-    let cms=extractDominantCms(String(cols[7]||'').trim());
-    if(!cms)continue;
-    const themas=String(cols[12]||'').split('/').map(t=>t.trim()).filter(Boolean);
+    const cols=rows[i];if(cols.length<5)continue;
+    const dd=xlDate(iDateDem>=0?cols[iDateDem]:'');if(!dd)continue;
+    const da=xlDate(iDateAct>=0?cols[iDateAct]:'')||null;
+    let cms=extractDominantCms(String(iLieu>=0?cols[iLieu]||'':'').trim());if(!cms)continue;
+    const themas=String(iThemas>=0?cols[iThemas]||'':'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
     const EXCL_BIN=new Set(['Reservation','Ateliers']);
-    for(const p of String(cols[6]||'').split(';')){
-      const t=p.trim();
-      if(t&&!EXCL_BIN.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}
-      if(types.length>=4)break;
-    }
-    records.push({
-      date_demande:dd,date_action:da||null,
-      conum:String(cols[11]||'').trim(),
-      cms,
-      commune:String(cols[3]||'').trim(),
-      themas,type_action:types,
-      orienteur:String(cols[9]||'').trim(),
-      motif:String(cols[4]||'').slice(0,120).trim(),
-      benef_connu:String(cols[17]||'').trim().toLowerCase()==='oui',
-      urgence:String(cols[18]||'').trim().toLowerCase()==='oui'
-    });
+    for(const p of String(iType>=0?cols[iType]||'':'').split(';')){const t=p.trim();if(t&&!EXCL_BIN.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
+    const etatRaw=String(iEtat>=0?cols[iEtat]||'':'').trim();
+    const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||(etatRaw||null);
+    const dp=iDatePlanif>=0?xlDate(cols[iDatePlanif])||null:null;
+    const dr=iDateReal>=0?xlDate(cols[iDateReal])||null:null;
+    records.push({date_demande:dd,date_action:da,conum:String(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide');
   return{records,warnings};
@@ -2579,7 +2599,7 @@ function renderActYoY(){
     base.filter(r=>r.year===yr2&&r.etat==='Non réalisée')
         .forEach(r=>{if(r.date){const m=parseInt(r.date.slice(5,7))-1;if(m>=0&&m<12)vals[m]++;}});
     return{
-      label:yr2,data:vals,
+      label:yrLabel(yr2),data:vals,
       backgroundColor:col+'66',borderColor:col,
       borderWidth:1.5,borderRadius:3,borderSkipped:false
     };
@@ -3210,7 +3230,7 @@ function drSlideEvol(c,data,palette){
     datasets=years.map((yr,i)=>{
       const col=palette[i%palette.length];
       const vals=allMonths.map((_,mi)=>data.filter(r=>r.date_demande.slice(0,4)===yr&&parseInt(r.date_demande.slice(5,7))-1===mi).length);
-      return{label:yr,data:vals,backgroundColor:col+'33',borderColor:col,borderWidth:2,pointRadius:4,pointHoverRadius:6,fill:years.length===1,tension:.35};
+      return{label:yrLabel(yr),data:vals,backgroundColor:col+'33',borderColor:col,borderWidth:2,pointRadius:4,pointHoverRadius:6,fill:years.length===1,tension:.35};
     });
   }
 
