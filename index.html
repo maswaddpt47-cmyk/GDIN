@@ -366,6 +366,7 @@ body.pres-mode .tbl th{font-size:11px}
         <option value="Accompagnement">Accompagnement</option>
         <option value="Prise de contact">Prise de contact</option>
         <option value="Orientation vers un tiers">Orientation tiers</option>
+        <option value="Ateliers">Atelier</option>
       </select>
     </div>
     <div class="type-filter" id="header-year-chips-wrap" style="align-items:center;gap:6px">
@@ -377,6 +378,7 @@ body.pres-mode .tbl th{font-size:11px}
       <span class="sep">→</span>
       <label>au</label><input type="date" id="dTo">
       <button class="btn-sm" onclick="resetDates()">Tout</button>
+      <button class="btn-sm" onclick="resetDates()" title="Réinitialiser tous les filtres">⟲ Réinitialiser</button>
     </div>
     <span class="filter-pill" id="fpill">Filtre actif</span>
     <button class="btn-csv" onclick="exportCSV()" title="Exporter les données filtrées en CSV">↓ CSV</button>
@@ -396,6 +398,7 @@ body.pres-mode .tbl th{font-size:11px}
         <option value="Accompagnement">Accompagnement</option>
         <option value="Prise de contact">Prise de contact</option>
         <option value="Orientation vers un tiers">Orientation vers un tiers</option>
+        <option value="Ateliers">Atelier</option>
       </select>
     </div>
     <div class="drawer-row" style="flex-direction:column;align-items:flex-start;gap:6px">
@@ -523,7 +526,7 @@ body.pres-mode .tbl th{font-size:11px}
     </div>
     <div class="g2">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--green)"></span>Évolution mensuelle</div><canvas id="ch-conum-evol"></canvas></div>
-      <div class="card"><div class="card-title"><span class="dot" style="background:var(--purple)"></span>Types d'action (hors Réservation)</div><canvas id="ch-conum-types"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--purple)"></span>Mois calendaires (multi-années)</div><canvas id="ch-conum-types"></canvas></div>
     </div>
     <div class="card"><div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Récap tous conseillers</div>
       <table class="tbl"><thead><tr><th>Conseiller</th><th>Accompagnements</th><th>Orientations TS</th><th>Thématique principale</th></tr></thead>
@@ -826,7 +829,7 @@ const CMS_MAIN=['CMS Agen Montanou','CMS Agen Louis Vivent','CMS Tonneins','CMS 
 const MONTH_FR=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 const TYPE_KEYS=['Accompagnement','Prise de contact','Orientation vers un tiers'];
 const ORI_EXCL=new Set(['ASWAD Michel','TUAL Corentin','PINEAU Cynthia','MONTOUX PARTHENAY Caroline','CHIBANE-TARASCON THIBAUD','CAPELLE Eva']);
-const TYPE_EXCL=new Set(['Reservation','Ateliers','Reservation ','Ateliers ']);
+const TYPE_EXCL=new Set(['Reservation','Reservation ']);
 // Retourne tous les types présents dans un dataset (hors exclus), triés par fréquence
 function allTypeKeys(arr){
   const m={};
@@ -938,7 +941,7 @@ function parseXlsText(text){
   function ci(...hints){return hdrs.findIndex(h=>hints.some(hint=>h.includes(normH(hint))));}
   const iCommune=ci('commune'),iMotif=ci('motif'),iType=ci('type action',"type d'action"),iLieu=ci('lieu / cms','lieu/cms'),iDateAct=ci('date action'),iOrienteur=(()=>{const r=ci('referent');return r>=0?r:ci('orienteur','prescripteur');})(),iDateDem=ci('date demande'),iConum=ci('conseiller num'),iThemas=ci('thematique'),iBenef=ci('beneficiaire connu','benef connu'),iUrgence=ci('urgence'),iEtat=ci("libelle de l'etat","etat de l'action"),iDatePlanif=ci('date planif','date planifier'),iDateReal=ci('date de realisation','date reelle','date realisation');
   if(iDateDem<0)throw new Error(`Colonne "Date demande" introuvable. En-têtes : ${hdrsRaw.slice(0,8).join(' | ')}`);
-  const EXCL=new Set(['Reservation','Ateliers']);
+  const EXCL=new Set(['Reservation']);
   const ETAT_MAP={'en cours':'En attente','en attente':'En attente','realisee':'Réalisée','réalisée':'Réalisée','non realisee':'Non réalisée','non réalisée':'Non réalisée','annulee':'Annulée','annulée':'Annulée'};
   const records=[],warnings=[];
   for(let i=1;i<lines.length;i++){
@@ -954,7 +957,7 @@ function parseXlsText(text){
     const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||(etatRaw||null);
     const dp=iDatePlanif>=0?excelDate(cols[iDatePlanif])||null:null;
     const dr=iDateReal>=0?excelDate(cols[iDateReal])||null:null;
-    records.push({date_demande:dd,date_action:da,conum:(()=>{const _c=(iConum>=0?cols[iConum]||'':'').trim();return _c||((cms&&(cms.toLowerCase().includes('fumel')||cms.toLowerCase().includes('marmande')))?'ASWAD Michel':'');})(),cms,commune:(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
+    records.push({date_demande:dd,date_action:da,conum:(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide. Vérifiez le format.');
   return{records,warnings};
@@ -982,7 +985,7 @@ function initData(){
   // Also filter Reservation from embedded data at init
   const stored=loadFromStorage();
   if(stored){DATA=stored.records;dataSource='imported';importMeta=stored.meta;updateSourceBadge(true,stored.meta);}
-  else{const EXCL=new Set(['Reservation','Ateliers']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL.has(t))}))
+  else{const EXCL=new Set(['Reservation']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL.has(t))}))
     .filter(r=>r.cms!==null);dataSource='embedded';updateSourceBadge(false,null);}
   updateAllYears();updateDateRange();updateCurrentSourceInfo();
 }
@@ -1048,10 +1051,10 @@ function getFiltered(){
   document.getElementById('fpill').classList.toggle('on',f!==dmin||t!==dmax||ty!==''||!allSelected);
   let d=DATA.filter(r=>r.date_demande>=f&&r.date_demande<=t);
   if(!allSelected)d=d.filter(r=>activeYears.has(r.date_demande.slice(0,4)));
-  if(ty)d=d.filter(r=>r.type_action&&r.type_action.includes(ty));
+  if(ty){const _nt=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/s$/,'');const nty=_nt(ty);d=d.filter(r=>(r.type_action||[]).some(x=>_nt(x).startsWith(nty)));}
   return d;
 }
-function resetDates(){updateDateRange();document.getElementById('typeFilter').value='';activeYears=new Set(ALL_YEARS);syncYearChipStyles();refreshAll();try{document.getElementById('btn-filter-toggle').classList.remove('has-filter');}catch(e){}}
+function resetDates(){updateDateRange();document.getElementById('typeFilter').value='';activeYears=new Set(ALL_YEARS);syncYearChipStyles();try{document.getElementById('typeFilterM').value='';document.getElementById('dFromM').value=document.getElementById('dFrom').value;document.getElementById('dToM').value=document.getElementById('dTo').value;}catch(e){}refreshAll();try{document.getElementById('btn-filter-toggle').classList.remove('has-filter');}catch(e){}}
 
 function onYearFilterChange(){/* remplacé par toggleYear + chips */}
 document.getElementById('dFrom').addEventListener('change',refreshAll);
@@ -1112,9 +1115,9 @@ function renderGlobal(){
   destroyChart('ch-thema');
   charts['ch-thema']=new Chart(document.getElementById('ch-thema'),{type:'doughnut',data:{labels:themas.map(t=>t[0]),datasets:[{data:themas.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:'#111827',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:10},padding:8,boxWidth:8,color:'#dde6f5'}}}}});
 
-  const conumData=Object.entries(count(data,'conum'));
+  const conumData=Object.entries(count(data,'conum')).filter(([n])=>n&&n!=='?'&&n.trim()!=='');
   destroyChart('ch-conum');
-  charts['ch-conum']=new Chart(document.getElementById('ch-conum'),{type:'doughnut',data:{labels:conumData.map(c=>c[0].split(' ')[0]),datasets:[{data:conumData.map(c=>c[1]),backgroundColor:conumData.map(c=>conumColor(c[0])),borderWidth:2,borderColor:'#111827',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:10},padding:8,boxWidth:8,color:'#dde6f5'}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,data.length)}%)`}}}}});
+  charts['ch-conum']=new Chart(document.getElementById('ch-conum'),{type:'doughnut',data:{labels:conumData.map(c=>c[0].split(' ')[0]),datasets:[{data:conumData.map(c=>c[1]),backgroundColor:conumData.map(c=>conumColor(c[0])),borderWidth:2,borderColor:'#111827',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:10},padding:8,boxWidth:8,color:'#dde6f5'}},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.parsed} (${pct(ctx.parsed,conumData.reduce((s,c)=>s+c[1],0))}%)`}}}}});
 
   makeBarList(document.getElementById('bar-cms-global'),Object.fromEntries(Object.entries(count(noDsian,'cms')).slice(0,9)),'blue');
 
@@ -1456,7 +1459,10 @@ function renderConum(){
   charts['ch-conum-evol']=new Chart(document.getElementById('ch-conum-evol'),{type:'bar',data:{labels:mKeys.map(monthLabel),datasets:[{data:mKeys.map(k=>data.filter(r=>r.date_demande.startsWith(k)).length),backgroundColor:col+'66',borderColor:col,borderRadius:5,borderSkipped:false,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:10}}},y:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0'}}}}});
   const types=countTypes(data);
   destroyChart('ch-conum-types');
-  renderTypeChart('ch-conum-types',data);
+  {const MC=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const yrs=[...activeYears].sort();
+  const ds=yrs.map(yr=>{const col=yearColor(yr);return{label:String(yr),data:MC.map((_,mi)=>{const mo=String(mi+1).padStart(2,'0');return data.filter(r=>r.date_demande.startsWith(yr+'-'+mo)).length;}),backgroundColor:col+'88',borderColor:col,borderRadius:4,borderSkipped:false,borderWidth:1};});
+  charts['ch-conum-types']=new Chart(document.getElementById('ch-conum-types'),{type:'bar',data:{labels:MC,datasets:ds},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:yrs.length>1,labels:{font:{size:10},padding:8,boxWidth:8,color:'#dde6f5'}}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:10}}},y:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{color:'#6b7fa0'}}}}});}
   const allConums=[...new Set(DATA.map(r=>r.conum))].filter(c=>c&&!c.includes('CHIBANE')).sort();
   let rows='';
   allConums.forEach(cn=>{
@@ -1477,7 +1483,7 @@ function renderOrienteurs(){
   let data=getFiltered();if(cms)data=data.filter(r=>r.cms===cms);
 
   // Trier par volume desc, exclure vides
-  const oriEntries=Object.entries(count(data,'orienteur')).filter(([n])=>n&&n!=='?').sort((a,b)=>b[1]-a[1]);
+  const oriEntries=Object.entries(count(data,'orienteur')).filter(([n])=>n&&n!=='?'&&n.trim()!==''&&!ORI_EXCL.has(n.trim())).sort((a,b)=>b[1]-a[1]);
 
   // ── Graphe bar horizontal top 15 ──
   const top15=oriEntries.slice(0,15);
@@ -1689,7 +1695,7 @@ function buildRptBilan(conum,cms,data,dataConum){
     document.getElementById('rpt-bilan-text').innerHTML='<p style="color:var(--muted)">Aucun accompagnement sur cette combinaison pour la période sélectionnée.</p>';
     return;
   }
-  const prenom=conum.split(' ')[0];
+  const prenom=conum.split(' ').slice(1).join(' ')||conum.split(' ')[0];
   const done=data.filter(r=>r.date_action).length;
   const txC=pct(done,total);
   const communes=new Set(data.map(r=>r.commune).filter(Boolean)).size;
@@ -1889,13 +1895,13 @@ function parseXlsxBinary(arraybuffer){
     let cms=extractDominantCms(String(iLieu>=0?cols[iLieu]||'':'').trim());if(!cms)continue;
     const themas=String(iThemas>=0?cols[iThemas]||'':'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
-    const EXCL_BIN=new Set(['Reservation','Ateliers']);
+    const EXCL_BIN=new Set(['Reservation']);
     for(const p of String(iType>=0?cols[iType]||'':'').split(';')){const t=p.trim();if(t&&!EXCL_BIN.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
     const etatRaw=String(iEtat>=0?cols[iEtat]||'':'').trim();
     const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||(etatRaw||null);
     const dp=iDatePlanif>=0?xlDate(cols[iDatePlanif])||null:null;
     const dr=iDateReal>=0?xlDate(cols[iDateReal])||null:null;
-    records.push({date_demande:dd,date_action:da,conum:(()=>{const _c=String(iConum>=0?cols[iConum]||'':'').trim();return _c||((cms&&(cms.toLowerCase().includes('fumel')||cms.toLowerCase().includes('marmande')))?'ASWAD Michel':'');})(),cms,commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
+    records.push({date_demande:dd,date_action:da,conum:String(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide');
   return{records,warnings};
@@ -2022,7 +2028,7 @@ function confirmImport(){
 function cancelImport(){pendingData=null;['import-preview','import-error','parse-progress-box','import-anomalies'].forEach(id=>document.getElementById(id).style.display='none');document.getElementById('file-input').value='';}
 function resetToEmbedded(){
   if(!confirm('Supprimer les données importées et revenir aux données intégrées ?'))return;
-  clearStorage();const EXCL_RST=new Set(['Reservation','Ateliers']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL_RST.has(t))}))
+  clearStorage();const EXCL_RST=new Set(['Reservation']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL_RST.has(t))}))
     .filter(r=>r.cms!==null);
   dataSource='embedded';importMeta=null;updateSourceBadge(false,null);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
