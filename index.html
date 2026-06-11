@@ -954,7 +954,7 @@ function parseXlsText(text){
     const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||(etatRaw||null);
     const dp=iDatePlanif>=0?excelDate(cols[iDatePlanif])||null:null;
     const dr=iDateReal>=0?excelDate(cols[iDateReal])||null:null;
-    records.push({date_demande:dd,date_action:da,conum:(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
+    records.push({date_demande:dd,date_action:da,conum:(()=>{const _c=(iConum>=0?cols[iConum]||'':'').trim();return _c||((cms&&(cms.toLowerCase().includes('fumel')||cms.toLowerCase().includes('marmande')))?'ASWAD Michel':'');})(),cms,commune:(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide. Vérifiez le format.');
   return{records,warnings};
@@ -1895,7 +1895,7 @@ function parseXlsxBinary(arraybuffer){
     const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||(etatRaw||null);
     const dp=iDatePlanif>=0?xlDate(cols[iDatePlanif])||null:null;
     const dr=iDateReal>=0?xlDate(cols[iDateReal])||null:null;
-    records.push({date_demande:dd,date_action:da,conum:String(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
+    records.push({date_demande:dd,date_action:da,conum:(()=>{const _c=String(iConum>=0?cols[iConum]||'':'').trim();return _c||((cms&&(cms.toLowerCase().includes('fumel')||cms.toLowerCase().includes('marmande')))?'ASWAD Michel':'');})(),cms,commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide');
   return{records,warnings};
