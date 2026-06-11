@@ -828,6 +828,9 @@ const PALETTE=['#3b82f6','#f97316','#10b981','#8b5cf6','#ef4444','#22d3ee','#eab
 const CMS_MAIN=['CMS Agen Montanou','CMS Agen Louis Vivent','CMS Tonneins','CMS Villeneuve/Lot','CMS Fumel','CMS Marmande','CMS Nérac','CMS Agen Tapie','CMS Antenne Aiguillon','CMS Marmande (St-Pardoux)','CMS Casteljaloux','Permanence Castillonnès','DSIAN','France Services Villeneuve/Lot','France Services Confluent','Médiathèque Départementale','France Travail','Autre structure'];
 const MONTH_FR=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 const TYPE_KEYS=['Accompagnement','Prise de contact','Orientation vers un tiers'];
+// Attribution des conum vides par CMS (accord : champs vides Marmande/Fumel -> ASWAD Michel)
+const CONUM_ATTRIB={'CMS Marmande':'ASWAD Michel','CMS Fumel':'ASWAD Michel','CMS Marmande (St-Pardoux)':'ASWAD Michel','Permanence Castillonnès':'ASWAD Michel'};
+function applyConumAttrib(arr){(arr||[]).forEach(r=>{const c=(r.conum||'').trim();if((!c||c==='?')&&CONUM_ATTRIB[r.cms])r.conum=CONUM_ATTRIB[r.cms];});return arr;}
 const ORI_EXCL=new Set(['ASWAD Michel','TUAL Corentin','PINEAU Cynthia','MONTOUX PARTHENAY Caroline','CHIBANE-TARASCON THIBAUD','CAPELLE Eva']);
 const TYPE_EXCL=new Set(['Reservation','Reservation ']);
 // Retourne tous les types présents dans un dataset (hors exclus), triés par fréquence
@@ -987,6 +990,7 @@ function initData(){
   if(stored){DATA=stored.records;dataSource='imported';importMeta=stored.meta;updateSourceBadge(true,stored.meta);}
   else{const EXCL=new Set(['Reservation']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL.has(t))}))
     .filter(r=>r.cms!==null);dataSource='embedded';updateSourceBadge(false,null);}
+  applyConumAttrib(DATA);
   updateAllYears();updateDateRange();updateCurrentSourceInfo();
 }
 function updateAllYears(){
@@ -2012,7 +2016,7 @@ function confirmImport(){
   const newRecords=dedupedNew.filter(r=>!existingKeys.has(makeKey(r)));
   const crossDups=dedupedNew.length-newRecords.length;
   const merged=[...base,...newRecords];
-  DATA=merged;dataSource='imported';
+  DATA=merged;applyConumAttrib(DATA);dataSource='imported';
   const years=[...new Set(merged.map(r=>r.date_demande.slice(0,4)))].sort();
   importMeta={filename,count:DATA.length,years,date:new Date().toLocaleDateString('fr-FR')};
   const saved=saveToStorage(merged,importMeta);
@@ -2029,7 +2033,7 @@ function cancelImport(){pendingData=null;['import-preview','import-error','parse
 function resetToEmbedded(){
   if(!confirm('Supprimer les données importées et revenir aux données intégrées ?'))return;
   clearStorage();const EXCL_RST=new Set(['Reservation']);DATA=EMBEDDED.map(r=>({...r,cms:normCms(r.cms),type_action:(r.type_action||[]).filter(t=>!EXCL_RST.has(t))}))
-    .filter(r=>r.cms!==null);
+    .filter(r=>r.cms!==null);applyConumAttrib(DATA);
   dataSource='embedded';importMeta=null;updateSourceBadge(false,null);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
 }
