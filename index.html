@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GDIN — Dashboard Activité Conum</title>
+<meta name="description" content="Dashboard de suivi d'activité des conseillers numériques du Lot-et-Garonne — GDIN CD47">
+<meta property="og:title" content="GDIN — Dashboard Activité Conum">
+<meta property="og:description" content="Suivi d'activité des conseillers numériques — Conseil Départemental du Lot-et-Garonne">
+<meta property="og:type" content="website">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -105,8 +107,7 @@ select:focus{border-color:var(--blue)}
 .badge-blue{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.25)}
 .badge-orange{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.2)}
 .badge-purple{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2)}
-.cn-PINEAU{color:#3b82f6}.cn-TUAL{color:#10b981}.cn-CAPELLE{color:#f97316}
-.cn-ASWAD{color:#8b5cf6}.cn-MONTOUX{color:#6b7fa0}
+/* conum colors: générées dynamiquement via JS — voir conumColor() */
 .frow{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
 .frow label{font-size:11px;color:var(--muted);font-weight:500}
 .toggle-group{display:flex;background:var(--s2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
@@ -381,10 +382,10 @@ body.pres-mode .tbl th{font-size:11px}
       <button class="btn-sm" onclick="resetDates()" title="Réinitialiser tous les filtres">⟲ Réinitialiser</button>
     </div>
     <span class="filter-pill" id="fpill">Filtre actif</span>
-    <button class="btn-csv" onclick="exportCSV()" title="Exporter les données filtrées en CSV">↓ CSV</button>
-    <button class="btn-filter-toggle" id="btn-filter-toggle" onclick="openFilterDrawer()" title="Filtres">⚙ Filtres</button>
-    <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" title="Thème clair/sombre">🌙</button>
-    <button class="btn-pres" id="btn-pres" onclick="startDiapo()" title="Mode diaporama">▶ Diapo</button>
+    <button class="btn-csv" onclick="exportCSV()" title="Exporter les données filtrées en CSV" aria-label="Exporter CSV">↓ CSV</button>
+    <button class="btn-filter-toggle" id="btn-filter-toggle" onclick="openFilterDrawer()" title="Filtres" aria-label="Ouvrir les filtres">⚙ Filtres</button>
+    <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" title="Thème clair/sombre" aria-label="Basculer le thème">🌙</button>
+    <button class="btn-pres" id="btn-pres" onclick="startDiapo()" title="Mode diaporama" aria-label="Lancer le diaporama">▶ Diapo</button>
     <span style="font-size:10px;color:var(--muted)">Lot-et-Garonne · GDIN</span>
   </div>
   <!-- Drawer mobile filtres -->
@@ -1103,7 +1104,58 @@ function countTypes(arr){const m={};arr.forEach(r=>(r.type_action||[]).filter(t=
 function pct(n,total){return total?Math.round(n/total*100):0;}
 function monthLabel(k){const[y,mo]=k.split('-');return MONTH_FR[parseInt(mo)-1]+' '+y.slice(2);}
 function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
-function conumColor(name){return CONUM_COLORS[name]||'#6b7fa0';}
+function conumColor(name){
+  if(!name)return '#6b7fa0';
+  const trimmed=name.trim();
+  // Lookup exact
+  if(CONUM_COLORS[trimmed])return CONUM_COLORS[trimmed];
+  // Lookup insensible à la casse
+  const lower=trimmed.toLowerCase();
+  for(const [k,v] of Object.entries(CONUM_COLORS)){
+    if(k.toLowerCase()===lower)return v;
+  }
+  // Lookup insensible à l'ordre des tokens (ex: "Michel ASWAD" vs "ASWAD Michel")
+  const tokens=lower.split(/\s+/).sort().join(' ');
+  for(const [k,v] of Object.entries(CONUM_COLORS)){
+    if(k.toLowerCase().split(/\s+/).sort().join(' ')===tokens)return v;
+  }
+  // Couleur dynamique pour les conseillers non listés
+  const palette=['#3b82f6','#10b981','#f97316','#8b5cf6','#22d3ee','#eab308','#ef4444','#ec4899'];
+  const idx=Math.abs([...trimmed].reduce((h,c)=>((h<<5)-h+c.charCodeAt(0))|0,0))%palette.length;
+  return palette[idx];
+}
+// Formate "NOM Prénom" → {prenom:'Prénom', nom:'NOM', full:'Prénom NOM', display:'Prénom NOM'}
+// Gère aussi les noms composés (ex: "MONTOUX PARTHENAY Caroline")
+function formatConumName(raw){
+  if(!raw)return{prenom:'',nom:'',full:raw||'',display:raw||''};
+  const parts=raw.trim().split(/\s+/);
+  const nomParts=[],prenomParts=[];
+  parts.forEach(p=>{
+    if(p===p.toUpperCase()&&p.length>1&&!/^\d+$/.test(p))nomParts.push(p);
+    else prenomParts.push(p);
+  });
+  const nom=nomParts.join(' ');
+  const prenom=prenomParts.join(' ');
+  if(!prenom)return{prenom:'',nom:nom,full:nom,display:nom};
+  // full = "Prénom NOM" pour l'affichage, nom déjà en majuscules
+  return{prenom,nom,full:`${prenom} ${nom}`,display:`${prenom} ${nom}`};
+}
+// Retourne le HTML formaté prénom <strong>NOM</strong> avec couleur
+function conumNameHtml(raw,color){
+  const cn=formatConumName(raw);
+  if(!cn.prenom)return `<strong style="color:#ffffff;font-weight:700">${cn.nom}</strong>`;
+  return `<strong style="color:#ffffff;font-weight:700">${cn.prenom} ${cn.nom}</strong>`;
+}
+function injectConumCss(){
+  const id='gdin-conum-styles';
+  if(document.getElementById(id))return;
+  const style=document.createElement('style');style.id=id;
+  style.textContent=Object.entries(CONUM_COLORS).map(([name,color])=>{
+    const cls='cn-'+name.split(' ')[0];
+    return `.${cls}{color:${color}}`;
+  }).join('');
+  document.head.appendChild(style);
+}
 function conumClass(name){return 'cn-'+(name.split(' ')[0]);}
 function yearColor(yr){return YEAR_PALETTE[ALL_YEARS.indexOf(yr)%YEAR_PALETTE.length];}
 function makeBarList(el,data,color='blue',n=9){
@@ -1757,7 +1809,9 @@ function buildRptBilan(conum,cms,data,dataConum){
     document.getElementById('rpt-bilan-text').innerHTML='<p style="color:var(--muted)">Aucun accompagnement sur cette combinaison pour la période sélectionnée.</p>';
     return;
   }
-  const prenom=conum.split(' ').slice(1).join(' ')||conum.split(' ')[0];
+  const cnRpt=formatConumName(conum);
+  const cnRptColor=conumColor(conum);
+  const conumHtml=conumNameHtml(conum,cnRptColor);
   const done=data.filter(r=>r.date_action).length;
   const txC=pct(done,total);
   const communes=new Set(data.map(r=>r.commune).filter(Boolean)).size;
@@ -1795,7 +1849,7 @@ function buildRptBilan(conum,cms,data,dataConum){
     [delaiMoy!==null?delaiMoy+'j':'—',"Délai moyen d'action",'var(--orange)'],
   ].map(([v,l,col])=>`<div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;border-top:2px solid ${col}"><div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500;color:${col}">${v}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-top:5px">${l}</div></div>`).join('');
 
-  const p1=`Au sein de la structure <strong style="color:var(--blue)">${cms}</strong>, ${prenom} a accompagné <strong>${total} bénéficiaire${total>1?'s':''}</strong> sur <strong>${communes} commune${communes>1?'s':''}</strong>, soit <strong style="color:var(--cyan)">${partCN}% de son activité CN totale</strong> sur la période.`;
+  const p1=`Au sein de la structure <strong style="color:var(--blue)">${cms}</strong>, ${conumHtml} a accompagné <strong>${total} bénéficiaire${total>1?'s':''}</strong> sur <strong>${communes} commune${communes>1?'s':''}</strong>, soit <strong style="color:var(--cyan)">${partCN}% de son activité CN totale</strong> sur la période.`;
   const p2=`La thématique dominante est <strong style="color:var(--orange)">${topThema}</strong> (${topN} demande${topN>1?'s':''} · ${topThemaPct}%). Le taux de complétion des dossiers atteint <strong>${txC}%</strong>, avec un délai moyen de prise en charge de <strong>${delaiMoy!==null?delaiMoy+' jours':'moins d\'une semaine'}</strong>.`;
   const p3=`L'activité affiche une évolution de <strong style="color:${trendColor}">${trend}</strong> sur le dernier trimestre, avec <strong>${orienteurs} travailleur${orienteurs>1?'s':''} social${orienteurs>1?'·aux':''} orienteur${orienteurs>1?'s':''}</strong> mobilisé${orienteurs>1?'s':''}.${p48!==null?` Le taux de réactivité 48h atteint <strong style="color:${p48Color}">${p48}%</strong> des prises de contact dans le délai réglementaire.`:''}`;
 
@@ -3242,12 +3296,16 @@ function drSlideCover(c,data,allDataConum){
   const debut=dates[0]?.slice(0,7).replace('-','/')||'—';
   const fin=dates[dates.length-1]?.slice(0,7).replace('-','/')||'—';
   const years=drYears.size?[...drYears].sort().join(', '):[...new Set(data.map(r=>r.date_demande.slice(0,4)))].sort().join(', ');
+  const cnCover=formatConumName(drConum);
+  const cnCoverColor=conumColor(drConum);
   c.innerHTML=`
     <div style="min-height:calc(100vh - 130px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:20px">
       <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--blue);opacity:.7">Conseil Départemental du Lot-et-Garonne</div>
       <div style="font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)">Dispositif GDIN · Rapport d'activité</div>
       <div style="width:60px;height:2px;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:2px"></div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:clamp(28px,4vw,52px);font-weight:700;letter-spacing:-1px;color:var(--text);line-height:1.1">${drConum}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;line-height:1.1;letter-spacing:-1px">
+        <span style="font-size:clamp(22px,3vw,38px);font-weight:400;color:var(--muted)">${cnCover.prenom} </span><span style="font-size:clamp(28px,4vw,52px);font-weight:700;color:${cnCoverColor}">${cnCover.nom||cnCover.full}</span>
+      </div>
       <div style="font-size:15px;color:var(--muted);font-weight:500;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:8px 20px">${drCms}</div>
       <div style="width:60px;height:2px;background:linear-gradient(90deg,var(--cyan),var(--blue));border-radius:2px"></div>
       <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:10px">
@@ -3655,10 +3713,16 @@ function drSlideBilan(c,data,allDataConum){
     kpis.push([txReel!==null?txReel+'%':'—','Taux réalisation','var(--green)']);
   }
 
+  const cn=formatConumName(drConum);
+  const cnColor=conumColor(drConum);
+
   c.innerHTML=`
     <div style="padding:10px 0">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px">Bilan & Perspectives</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:20px">${drConum} · ${drCms} · ${years.join(', ')}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:2px">Bilan &amp; Perspectives</div>
+      <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px;font-family:'Space Grotesk',sans-serif;font-size:20px">
+        ${conumNameHtml(drConum,cnColor)}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:20px">${drCms} · ${years.join(', ')}</div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px">
         ${kpis.map(([v,l,col])=>`
           <div style="background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;border-top:2px solid ${col}">
@@ -3673,7 +3737,7 @@ function drSlideBilan(c,data,allDataConum){
       </div>`:''}
       <div style="background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(16,185,129,.06));border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:22px 26px;line-height:1.9;font-size:13px;color:var(--text)">
         <p style="margin-bottom:10px">
-          Au sein de la structure <strong style="color:var(--blue)">${drCms}</strong>, <strong>${drConum}</strong> a accompagné
+          Au sein de la structure <strong style="color:var(--blue)">${drCms}</strong>, ${conumNameHtml(drConum,cnColor)} a accompagné
           <strong>${total} bénéficiaires</strong> sur <strong>${communes} communes</strong> du territoire,
           représentant <strong style="color:var(--cyan)">${partCN}% de son activité CN totale</strong> sur cette période.
         </p>
@@ -3687,7 +3751,7 @@ function drSlideBilan(c,data,allDataConum){
           Évolution <strong style="color:${trendColor}">${trend}</strong> sur le dernier trimestre${deltaYoY!==null?` et <strong style="color:${trendYoYColor}">${trendYoY}</strong> vs ${yPrev}`:''}.
           Avec <strong>${orienteurs} travailleurs sociaux orienteurs</strong> mobilisés,
           ${(()=>{const r48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0&&r.delai_reactivite<=2).length;const t48=actBil.filter(r=>r.delai_reactivite!=null&&r.delai_reactivite>=0).length;const p48=hasActBil&&t48>=20?Math.round(r48/t48*100):null;return p48!==null?`réactivité 48h à <strong style="color:${p48>=95?'var(--green)':p48>=85?'var(--orange)':'var(--red)'}">${p48}%</strong> —`:'';})()}
-          l'<strong style="color:var(--green)">engagement remarquable</strong> de <strong>${drConum}</strong>
+          l'<strong style="color:var(--green)">engagement remarquable</strong> de ${conumNameHtml(drConum,cnColor)}
           et son rôle <strong>essentiel dans l'inclusion numérique des publics fragiles</strong> du Lot-et-Garonne. 🎯
         </p>
       </div>
@@ -3735,7 +3799,12 @@ function startDiapoRapport(){
   drIdx=0;
 
   document.getElementById('dr-overlay').style.display='flex';
-  document.getElementById('dr-conum-badge').textContent=drConum;
+  const cnBadge=formatConumName(drConum);
+  const cnBadgeColor=conumColor(drConum);
+  document.getElementById('dr-conum-badge').innerHTML=
+    cnBadge.prenom
+      ? `${cnBadge.prenom} <strong style="text-transform:uppercase;color:${cnBadgeColor}">${cnBadge.nom}</strong>`
+      : `<strong style="color:${cnBadgeColor}">${cnBadge.full}</strong>`;
   document.getElementById('dr-cms-badge').textContent=drCms;
 
   // Dots
@@ -3762,9 +3831,7 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Escape')stopDiapoRapport();
 });
 
-// ── THÈME : appliquer au dr-overlay aussi ──
-const _origToggleTheme=window.toggleTheme;
-// Patch toggleTheme pour propager au dr-overlay
+// ── THÈME ──
 function toggleTheme(){
   const light=document.body.classList.toggle('light-mode');
   document.getElementById('btn-theme').textContent=light?'🌑':'🌙';
@@ -3774,6 +3841,7 @@ function toggleTheme(){
 
 // ── BOOT ──
 (function(){
+  injectConumCss();
   initData();initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();renderGlobal();
   // Restaurer l'onglet actif
   try{
@@ -3817,8 +3885,21 @@ async function exportDiapoPDF(){
     else if(slide.id==='nonreal') drSlideNonReal(c,data);
     else if(slide.id==='bilan') drSlideBilan(c,data,allDataConum);
 
-    // Attendre le rendu des charts
-    await new Promise(r=>setTimeout(r,600));
+    // Attendre le rendu des charts (via animation.onComplete ou timeout de sécurité 1s)
+    await new Promise(resolve=>{
+      const activeCharts=Object.values(Chart.instances||{});
+      const pending=activeCharts.filter(c=>c.canvas&&document.getElementById('dr-content').contains(c.canvas));
+      if(!pending.length){resolve();return;}
+      let done=0;
+      pending.forEach(c=>{
+        const orig=c.options.animation?.onComplete;
+        c.options.animation=c.options.animation||{};
+        c.options.animation.onComplete=function(){if(orig)orig.call(this);done++;if(done>=pending.length)resolve();};
+        c.update('none');
+      });
+      // Sécurité : on résout quand même après 1s
+      setTimeout(resolve,1000);
+    });
 
     // Cloner le contenu dans le conteneur print
     const page=document.createElement('div');
@@ -3849,18 +3930,19 @@ async function exportDiapoPDF(){
   // Restaurer la slide courante
   drGoTo(savedIdx);
 
-  // Forcer le mode clair sur le body pendant l'impression
+  // Forcer le mode clair pendant l'impression, restaurer dans tous les cas
   const wasLight=document.body.classList.contains('light-mode');
   document.body.classList.add('light-mode');
 
-  setTimeout(()=>{
+  try{
+    await new Promise(resolve=>setTimeout(resolve,300));
     window.print();
-    setTimeout(()=>{
-      if(!wasLight)document.body.classList.remove('light-mode');
-      btn.textContent='⬇ PDF';btn.disabled=false;
-      container.innerHTML='';
-    },500);
-  },300);
+    await new Promise(resolve=>setTimeout(resolve,500));
+  }finally{
+    if(!wasLight)document.body.classList.remove('light-mode');
+    btn.textContent='⬇ PDF';btn.disabled=false;
+    container.innerHTML='';
+  }
 }
 </script>
 </body>
