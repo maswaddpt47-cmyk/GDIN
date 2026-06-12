@@ -429,6 +429,7 @@ body.pres-mode .tbl th{font-size:11px}
     <button class="tab" onclick="switchTab('par-conum',this)">Par Conseiller</button>
     <button class="tab" onclick="switchTab('orienteurs',this)">Orienteurs</button>
     <button class="tab" onclick="switchTab('territoire',this)">🗺 Territoire</button>
+    <button class="tab" onclick="switchTab('ateliers',this)">🎤 Ateliers</button>
     <button class="tab" onclick="switchTab('rapport',this)">📋 Rapport</button>
     <button class="tab import-tab" onclick="switchTab('import',this)">⬆ Import données</button>
   </div>
@@ -577,6 +578,21 @@ body.pres-mode .tbl th{font-size:11px}
     <div class="g2" style="margin-top:0">
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 communes — volume</div><canvas id="ch-terr-bar" style="max-height:260px"></canvas></div>
       <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Thématiques des communes affichées</div><canvas id="ch-terr-thema" style="max-height:260px"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ATELIERS -->
+  <div id="panel-ateliers" class="panel">
+    <div class="frow"><div class="year-chips" id="year-chips-atl" style="margin-left:auto"></div></div>
+    <div class="g5" id="kpi-ateliers"></div>
+    <div class="g2">
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--cyan)"></span>Évolution mensuelle des ateliers</div><canvas id="ch-atl-evol" style="max-height:260px"></canvas></div>
+      <div class="card"><div class="card-title"><span class="dot" style="background:var(--orange)"></span>Top thématiques abordées</div><canvas id="ch-atl-thema" style="max-height:260px"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--blue)"></span>Top 15 lieux d'ateliers</div>
+      <table class="tbl sortable" id="tbl-atl-wrap"><thead><tr><th>Lieu</th><th>Commune</th><th>Ateliers</th><th>Conseiller principal</th><th>Thématique principale</th></tr></thead>
+      <tbody id="tbl-atl"></tbody></table>
     </div>
   </div>
 
@@ -987,6 +1003,7 @@ function parseXlsText(text){
     const dd=excelDate(iDateDem>=0?cols[iDateDem]:'');if(!dd)continue;
     const da=excelDate(iDateAct>=0?cols[iDateAct]:'')||null;
     let cms=extractDominantCms((iLieu>=0?cols[iLieu]||'':'').trim());
+    const lieuRaw=(iLieu>=0?cols[iLieu]||'':'').trim();
     const themas=(iThemas>=0?cols[iThemas]||'':'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
     for(const p of (iType>=0?cols[iType]||'':'').split(';')){const t=p.trim();if(t&&!EXCL.has(t)&&!seen.has(t)){seen.add(t);types.push(t);}if(types.length>=4)break;}
@@ -994,7 +1011,7 @@ function parseXlsText(text){
     const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||(etatRaw||null);
     const dp=iDatePlanif>=0?excelDate(cols[iDatePlanif])||null:null;
     const dr=iDateReal>=0?excelDate(cols[iDateReal])||null:null;
-    records.push({date_demande:dd,date_action:da,conum:(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
+    records.push({date_demande:dd,date_action:da,conum:(iConum>=0?cols[iConum]||'':'').trim(),cms,lieu_raw:lieuRaw,commune:(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide. Vérifiez le format.');
   return{records,warnings};
@@ -1056,7 +1073,7 @@ function makeYearChip(yr,i,onClick){
 function buildAllYearChips(){
   const ids=['year-chips','header-year-chips','drawer-year-chips',
              'year-chips-cms','year-chips-conum','year-chips-ori',
-             'year-chips-terr','year-chips-rpt'];
+             'year-chips-terr','year-chips-atl','year-chips-rpt'];
   ids.forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.innerHTML='';ALL_YEARS.forEach((yr,i)=>{el.appendChild(makeYearChip(yr,i,()=>toggleYear(yr,i)));});}
@@ -1064,7 +1081,7 @@ function buildAllYearChips(){
 }
 function buildYearChips(){buildAllYearChips();}
 function syncYearChipStyles(){
-  ['year-chips','header-year-chips','drawer-year-chips','year-chips-cms','year-chips-conum','year-chips-ori','year-chips-terr','year-chips-rpt'].forEach(id=>{
+  ['year-chips','header-year-chips','drawer-year-chips','year-chips-cms','year-chips-conum','year-chips-ori','year-chips-terr','year-chips-atl','year-chips-rpt'].forEach(id=>{
     const el=document.getElementById(id);if(!el)return;
     el.querySelectorAll('button.year-chip').forEach(chip=>{
       const yr=chip.dataset.yr,i=parseInt(chip.dataset.idx);
@@ -1174,6 +1191,7 @@ function switchTab(id,btn){
   if(id==='par-cms'){initCmsSelect();renderCms();}
   if(id==='par-conum'){initConumSelect();renderConum();renderHeatmapConum();}
   if(id==='orienteurs'){initOriCmsSelect();renderOrienteurs();}
+  if(id==='ateliers'){buildYearChips();renderAteliers();}
   if(id==='territoire'){
     // Double requestAnimationFrame garantit que le DOM est peint avant Leaflet
     requestAnimationFrame(function(){requestAnimationFrame(function(){
@@ -2009,6 +2027,7 @@ function parseXlsxBinary(arraybuffer){
     const dd=xlDate(iDateDem>=0?cols[iDateDem]:'');if(!dd)continue;
     const da=xlDate(iDateAct>=0?cols[iDateAct]:'')||null;
     let cms=extractDominantCms(String(iLieu>=0?cols[iLieu]||'':'').trim());if(!cms)continue;
+    const lieuRaw=String(iLieu>=0?cols[iLieu]||'':'').trim();
     const themas=String(iThemas>=0?cols[iThemas]||'':'').split('/').map(t=>t.trim()).filter(Boolean);
     const seen=new Set(),types=[];
     const EXCL_BIN=new Set(['Reservation']);
@@ -2017,7 +2036,7 @@ function parseXlsxBinary(arraybuffer){
     const etat=ETAT_MAP[etatRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')]||(etatRaw||null);
     const dp=iDatePlanif>=0?xlDate(cols[iDatePlanif])||null:null;
     const dr=iDateReal>=0?xlDate(cols[iDateReal])||null:null;
-    records.push({date_demande:dd,date_action:da,conum:String(iConum>=0?cols[iConum]||'':'').trim(),cms,commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
+    records.push({date_demande:dd,date_action:da,conum:String(iConum>=0?cols[iConum]||'':'').trim(),cms,lieu_raw:lieuRaw,commune:String(iCommune>=0?cols[iCommune]||'':'').trim(),themas,type_action:types,orienteur:String(iOrienteur>=0?cols[iOrienteur]||'':'').trim(),motif:String(iMotif>=0?cols[iMotif]||'':'').slice(0,120).trim(),benef_connu:String(iBenef>=0?cols[iBenef]||'':'').trim().toLowerCase()==='oui',urgence:String(iUrgence>=0?cols[iUrgence]||'':'').trim().toLowerCase()==='oui',etat,date_planifiee:dp,date_realisation:dr});
   }
   if(!records.length)throw new Error('Aucun enregistrement valide');
   return{records,warnings};
@@ -2194,6 +2213,7 @@ function refreshAll(){
   if(document.getElementById('panel-par-conum').classList.contains('active'))renderConum();
   if(document.getElementById('panel-orienteurs').classList.contains('active'))renderOrienteurs();
   if(document.getElementById('panel-territoire').classList.contains('active'))renderTerritoire();
+  if(document.getElementById('panel-ateliers').classList.contains('active'))renderAteliers();
   if(document.getElementById('panel-rapport').classList.contains('active'))renderRapport();
 }
 function exportCSV(){
@@ -2897,7 +2917,71 @@ window.addEventListener('load',()=>{setTimeout(checkTabsFade,200);});
 
 const COMMUNE_COORDS={"AGEN": [44.2042, 0.6208], "AGEN CEDEX 9": [44.2042, 0.6208], "VILLENEUVE-SUR-LOT": [44.4085, 0.7056], "VILLENEUVE SUR LOT": [44.4085, 0.7056], "VILLENEUVE/LOT": [44.4085, 0.7056], "MARMANDE": [44.5006, 0.1644], "TONNEINS": [44.3906, 0.3089], "NERAC": [44.1361, 0.3397], "AIGUILLON": [44.2989, 0.3411], "FUMEL": [44.4961, 1.0836], "LE PASSAGE": [44.1942, 0.6417], "LE PASSAGE D'AGEN": [44.1942, 0.6417], "MONSEMPRON-LIBOS": [44.4908, 1.0286], "FOULAYRONNES": [44.2239, 0.6625], "CASTELJALOUX": [44.3139, 0.0931], "MONTAYRAL": [44.5089, 1.0661], "DAMAZAN": [44.2997, 0.2803], "LAVARDAC": [44.1794, 0.2997], "CLAIRAC": [44.3542, 0.3778], "ESTILLAC": [44.1608, 0.605], "BON-ENCONTRE": [44.1736, 0.6558], "CONDEZAYGUES": [44.4678, 1.0475], "PONT-DU-CASSE": [44.2206, 0.6722], "PONT DU CASSE": [44.2206, 0.6722], "BOE": [44.1769, 0.6047], "BARBASTE": [44.1589, 0.2703], "PUJOLS": [44.3906, 0.7297], "LAPARADE": [44.3756, 0.4583], "ST-VITE": [44.4211, 1.0075], "SAINT-VITE": [44.4211, 1.0075], "CALONGES": [44.3272, 0.3097], "PORT-SAINTE-MARIE": [44.2467, 0.3953], "CUZORN": [44.4817, 1.0194], "BUZET-SUR-BAISE": [44.2594, 0.3025], "COLAYRAC-ST-CIRQ": [44.2206, 0.5875], "COLAYRAC ST CIRQ": [44.2206, 0.5875], "MEZIN": [44.0658, 0.2592], "SERIGNAC-SUR-GARONNE": [44.1481, 0.5736], "MONFLANQUIN": [44.5283, 0.7708], "FARGUES-SUR-OURBISE": [44.2617, 0.1056], "ASTAFFORT": [44.0603, 0.6592], "STE-LIVRADE-SUR-LOT": [44.3986, 0.5919], "SAINTE-LIVRADE-SUR-LOT": [44.3986, 0.5919], "AUBIAC": [44.1531, 0.6919], "LACAPELLE-BIRON": [44.6119, 0.8625], "SAINTE-BAZEILLE": [44.4803, 0.1736], "STE-BAZEILLE": [44.4803, 0.1736], "VIANNE": [44.2033, 0.3167], "MASQUIERES": [44.4667, 1.0028], "MIRAMONT-DE-GUYENNE": [44.6022, 0.3631], "MIRAMONT DE GUYENNE": [44.6022, 0.3631], "MIRAMONT DE GUYENE": [44.6022, 0.3631], "ST-MAURIN": [44.0644, 0.7031], "ST-FRONT-SUR-LEMANCE": [44.6117, 1.0589], "ROQUEFORT": [44.0419, 0.3225], "CASSENEUIL": [44.4394, 0.6303], "PENNE-D'AGENAIS": [44.3661, 0.9403], "TOURNON D AGENAIS": [44.3917, 0.9086], "CAUDECOSTE": [44.1047, 0.7608], "LAROQUE-TIMBAUT": [44.2181, 0.7806], "LAROQUE TIMBAUT": [44.2181, 0.7806], "BRAX": [44.1839, 0.57], "LAYRAC": [44.1397, 0.6614], "MEILHAN-SUR-GARONNE": [44.4728, 0.0728], "FAUILLET": [44.4411, 0.2286], "VERTEUIL-D'AGENAIS": [44.3728, 0.535], "COUTHURES-SUR-GARONNE": [44.4425, 0.2253], "GAUJAC": [44.0786, 0.4492], "BAJAMONT": [44.2386, 0.7244], "LASSERRE": [44.0486, 0.3375], "CALIGNAC": [44.0825, 0.3878], "MONTIGNAC-TOUPINERIE": [44.5831, 0.3033], "ESPIENS": [44.0753, 0.3617], "ST-QUENTIN-DU-DROPT": [44.6219, 0.5403], "ST-PASTOUR": [44.4206, 0.6844], "SAINT-HILAIRE-DE-LUSIGNAN": [44.1678, 0.6147], "GONTAUD-DE-NOGARET": [44.4206, 0.3453], "HOUIEILLES": [44.2431, 0.1281], "HOUEILLES": [44.2431, 0.1281], "CAZIDEROQUE": [44.4753, 0.9086], "POUSSIGNAC": [44.2767, 0.1125], "ROMESTAING": [44.2878, 0.0936], "LAUZUN": [44.6231, 0.3978], "VIRAZEIL": [44.4511, 0.2181], "SAUVETERRE-LA-LEMANCE": [44.5881, 1.0589], "LA REUNION": [44.3761, 0.4372], "BLAYMONT": [44.3511, 0.835], "PUCH-D'AGENAIS": [44.3228, 0.3894], "FRECHOU": [44.0458, 0.4022], "GUEYZE": [44.1631, 0.1236], "VILLEREAL": [44.6361, 0.7475], "MONCLAR D'AGENAIS": [44.3594, 0.7803], "CASTILONNES": [44.6481, 0.5789], "MONSEGUR": [44.6458, 0.0675], "LANNES": [44.0547, 0.27], "ST-LAURENT": [44.1869, 0.9161], "FAUGUEROLLES": [44.4736, 0.2444], "BOURRAN": [44.2661, 0.5736], "BIAS": [44.405, 0.9644], "47130 BAZENS": [44.3172, 0.5086], "BAZENS": [44.3172, 0.5086], "SAINTE-COLOMBE-EN-BRUILHOIS": [44.1697, 0.5528], "SAINT SYLVESTRE S LOT": [44.4119, 0.6531], "ST BARTHELEMY D AGENAIS": [44.4011, 0.2292], "ALLEZ ET CAZENEUVE": [44.4097, 0.8325], "TOULOUSE": [43.6047, 1.4442], "STE LIVRADE SUR LOT": [44.3986, 0.5919], "MONCLAR D AGENAIS": [44.3594, 0.7803], "CASTELMORON-SUR-LOT": [44.3897, 0.4903], "SAINT MARTIN DE CURTON": [44.4078, 0.2969], "VILLETON": [44.3628, 0.2822], "GONTAUD DE NOGARET": [44.4206, 0.3453]};
 
-// ── TERRITOIRE ──
+// ── ATELIERS ──
+function renderAteliers(){
+  const data=getFiltered().filter(r=>(r.type_action||[]).includes('Ateliers'));
+
+  // KPIs
+  const total=data.length;
+  const communes=new Set(data.map(r=>r.commune).filter(Boolean).map(c=>c.trim().toUpperCase()));
+  const lieux=new Set(data.map(r=>(r.lieu_raw||'').split(';')[0].trim()).filter(Boolean));
+  const conumSet=new Set(data.map(r=>r.conum).filter(Boolean));
+  const themas=Object.entries(countThemas(data));
+  const topThema=themas[0]?.[0]||'—';
+  const topThemaN=themas[0]?.[1]||0;
+
+  function kpiAtl(val,label,sub,color){
+    return `<div style="background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:24px 20px;text-align:center;border-top:3px solid ${color}">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:500;color:${color};line-height:1">${val}</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-top:10px;text-transform:uppercase;letter-spacing:.8px">${label}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">${sub}</div>
+    </div>`;
+  }
+  document.getElementById('kpi-ateliers').innerHTML=
+    kpiAtl(total,'Ateliers','sur la période','var(--cyan)')+
+    kpiAtl(communes.size,'Communes','couvertes','var(--blue)')+
+    kpiAtl(lieux.size,'Lieux','distincts (médiathèques, écoles…)','var(--purple)')+
+    kpiAtl(conumSet.size,'Conseillers','animateurs','var(--orange)')+
+    kpiAtl(`<span style="font-size:18px">${topThema}</span>`,'Thématique principale',`${topThemaN} ateliers`,'var(--green)');
+
+  // Évolution mensuelle
+  const months=[...new Set(data.map(r=>r.date_demande.slice(0,7)))].sort();
+  destroyChart('ch-atl-evol');
+  charts['ch-atl-evol']=new Chart(document.getElementById('ch-atl-evol'),{
+    type:'bar',
+    data:{labels:months.map(monthLabel),datasets:[{label:'Ateliers',data:months.map(m=>data.filter(r=>r.date_demande.startsWith(m)).length),backgroundColor:'#22d3ee99',borderColor:'#22d3ee',borderWidth:1.5,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#6b7fa0',font:{size:10}}},y:{grid:{color:'#1a2235'},beginAtZero:true,ticks:{precision:0,color:'#6b7fa0'}}}}
+  });
+
+  // Top thématiques
+  const themasTop=themas.slice(0,8);
+  destroyChart('ch-atl-thema');
+  charts['ch-atl-thema']=new Chart(document.getElementById('ch-atl-thema'),{
+    type:'doughnut',
+    data:{labels:themasTop.map(t=>t[0]),datasets:[{data:themasTop.map(t=>t[1]),backgroundColor:PALETTE,borderWidth:2,borderColor:'#111827',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{position:'right',labels:{font:{size:10},padding:8,boxWidth:8,color:'#dde6f5'}}}}
+  });
+
+  // Tableau top lieux
+  const lieuAcc={};
+  data.forEach(r=>{
+    const l=(r.lieu_raw||'').split(';')[0].trim()||'Lieu non précisé';
+    const c=(r.commune||'').trim()||'—';
+    const key=l+'|'+c;
+    if(!lieuAcc[key])lieuAcc[key]={lieu:l,commune:c,n:0,conums:{},themasL:{}};
+    lieuAcc[key].n++;
+    if(r.conum)lieuAcc[key].conums[r.conum]=(lieuAcc[key].conums[r.conum]||0)+1;
+    (r.themas||[]).forEach(t=>{lieuAcc[key].themasL[t]=(lieuAcc[key].themasL[t]||0)+1;});
+  });
+  const lieuRows=Object.values(lieuAcc).sort((a,b)=>b.n-a.n).slice(0,15);
+  document.getElementById('tbl-atl').innerHTML=lieuRows.map(row=>{
+    const topConum=Object.entries(row.conums).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+    const topThemaL=Object.entries(row.themasL).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+    return `<tr><td>${row.lieu}</td><td class="mono">${row.commune}</td><td class="mono">${row.n}</td><td>${conumNameHtml(topConum,conumColor(topConum))}</td><td>${topThemaL}</td></tr>`;
+  }).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--muted)">Aucun atelier sur la période sélectionnée</td></tr>';
+}
+
+
 // Couleur par CMS dominant
 function cmsColor(cms){
   const idx=CMS_MAIN.indexOf(cms);
@@ -2918,6 +3002,10 @@ function renderTerritoire(){
   const data=getFiltered();
   const topN=parseInt(document.getElementById('terr-top').value)||20;
 
+  // Mode Ateliers : le CMS n'a pas de sens (ateliers collectifs hors-les-murs) — on affiche le lieu réel
+  const typeFilterVal=document.getElementById('typeFilter')?document.getElementById('typeFilter').value:'';
+  const isAteliersMode=typeFilterVal==='Ateliers';
+
   // Lire le filtre CMS en premier
   const cmsFilterEl=document.getElementById('terr-cms-filter');
   const cmsFilter=cmsFilterEl?cmsFilterEl.value:'';
@@ -2934,8 +3022,9 @@ function renderTerritoire(){
   if(topN>0)communes=communes.slice(0,topN);
   const commNames=new Set(communes.map(c=>c[0]));
 
-  // Couleur = CMS dominant de la commune
+  // Couleur = CMS dominant de la commune (mode normal) / teinte neutre unique (mode Ateliers)
   function bubbleColor(nom){
+    if(isAteliersMode)return '#22d3ee';
     const nomUp=nom.toUpperCase();
     const acc={};
     dataFiltered.filter(d=>d.commune&&d.commune.trim().toUpperCase()===nomUp).forEach(d=>{if(d.cms)acc[d.cms]=(acc[d.cms]||0)+1;});
@@ -2993,21 +3082,42 @@ function getCoordsGlobal(nom){
       const color=bubbleColor(nom);
       const r=radius(total);
 
-      // Répartition par CMS avec mini-barres
-      const cmsAcc={};
-      dataFiltered.filter(d=>d.commune&&d.commune.trim().toUpperCase()===nomUp).forEach(d=>{if(d.cms)cmsAcc[d.cms]=(cmsAcc[d.cms]||0)+1;});
-      const cmsEntries=Object.entries(cmsAcc).sort((a,b)=>b[1]-a[1]);
-      const maxCms=cmsEntries[0]?cmsEntries[0][1]:1;
-      const detail=cmsEntries.map(([c,n])=>`
-        <div style="margin-bottom:3px">
-          <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:1px">
-            <span style="color:${cmsColor(c)};font-weight:600">${c.replace('CMS ','')}</span>
-            <span style="color:#aaa">${n}</span>
-          </div>
-          <div style="background:#333;border-radius:2px;height:3px">
-            <div style="background:${cmsColor(c)};width:${Math.round(n/maxCms*100)}%;height:3px;border-radius:2px"></div>
-          </div>
-        </div>`).join('');
+      // Répartition par CMS (mode normal) ou par lieu réel (mode Ateliers)
+      let detail;
+      if(isAteliersMode){
+        const lieuAcc={};
+        dataFiltered.filter(d=>d.commune&&d.commune.trim().toUpperCase()===nomUp).forEach(d=>{
+          const l=(d.lieu_raw||'').split(';')[0].trim()||'Lieu non précisé';
+          lieuAcc[l]=(lieuAcc[l]||0)+1;
+        });
+        const lieuEntries=Object.entries(lieuAcc).sort((a,b)=>b[1]-a[1]).slice(0,5);
+        const maxLieu=lieuEntries[0]?lieuEntries[0][1]:1;
+        detail=lieuEntries.map(([l,n])=>`
+          <div style="margin-bottom:3px">
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:1px;gap:6px">
+              <span style="color:#22d3ee;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${l}</span>
+              <span style="color:#aaa;flex-shrink:0">${n}</span>
+            </div>
+            <div style="background:#333;border-radius:2px;height:3px">
+              <div style="background:#22d3ee;width:${Math.round(n/maxLieu*100)}%;height:3px;border-radius:2px"></div>
+            </div>
+          </div>`).join('');
+      }else{
+        const cmsAcc={};
+        dataFiltered.filter(d=>d.commune&&d.commune.trim().toUpperCase()===nomUp).forEach(d=>{if(d.cms)cmsAcc[d.cms]=(cmsAcc[d.cms]||0)+1;});
+        const cmsEntries=Object.entries(cmsAcc).sort((a,b)=>b[1]-a[1]);
+        const maxCms=cmsEntries[0]?cmsEntries[0][1]:1;
+        detail=cmsEntries.map(([c,n])=>`
+          <div style="margin-bottom:3px">
+            <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:1px">
+              <span style="color:${cmsColor(c)};font-weight:600">${c.replace('CMS ','')}</span>
+              <span style="color:#aaa">${n}</span>
+            </div>
+            <div style="background:#333;border-radius:2px;height:3px">
+              <div style="background:${cmsColor(c)};width:${Math.round(n/maxCms*100)}%;height:3px;border-radius:2px"></div>
+            </div>
+          </div>`).join('');
+      }
 
       const circle=L.circleMarker(coords,{
         radius:r,fillColor:color,fillOpacity:0.85,
@@ -3017,7 +3127,7 @@ function getCoordsGlobal(nom){
       circle.bindPopup(
         `<div style="font-family:sans-serif;min-width:180px">
           <div style="font-weight:700;font-size:13px;margin-bottom:2px">${nom}</div>
-          <div style="font-size:10px;color:#888;margin-bottom:8px">${total} accompagnement${total>1?'s':''}</div>
+          <div style="font-size:10px;color:#888;margin-bottom:8px">${total} ${isAteliersMode?`atelier${total>1?'s':''}`:`accompagnement${total>1?'s':''}`}</div>
           ${detail}
         </div>`,
         {maxWidth:240}
@@ -3057,22 +3167,32 @@ function getCoordsGlobal(nom){
     }
   }
 
-  // Peupler le dropdown CMS dynamiquement
+  // Peupler le dropdown CMS dynamiquement (désactivé en mode Ateliers, non pertinent)
   const allCmsInData=[...new Set(DATA.map(r=>r.cms).filter(Boolean))].sort((a,b)=>CMS_MAIN.indexOf(a)-CMS_MAIN.indexOf(b));
   if(cmsFilterEl){
-    const curVal=cmsFilter;
+    cmsFilterEl.disabled=isAteliersMode;
+    cmsFilterEl.title=isAteliersMode?'Filtre CMS non pertinent pour les ateliers collectifs':'';
+    if(isAteliersMode&&cmsFilterEl.value){cmsFilterEl.value='';}
     cmsFilterEl.innerHTML='<option value="">Tous les CMS</option>';
     CMS_MAIN.filter(c=>allCmsInData.includes(c)).forEach(c=>{
       const o=document.createElement('option');
       o.value=c; o.textContent=c.replace('CMS ','');
-      if(c===curVal)o.selected=true;
+      if(c===cmsFilter)o.selected=true;
       cmsFilterEl.appendChild(o);
     });
   }
 
-  // Légende CMS dynamique
-  const cmsPresents=cmsFilter?[cmsFilter]:allCmsInData;
-  buildTerrLegend(cmsPresents);
+  // Légende : CMS dominant (mode normal) / message ateliers collectifs (mode Ateliers)
+  if(isAteliersMode){
+    const el=document.getElementById('terr-cms-legend');
+    if(el)el.innerHTML=`<span style="display:flex;align-items:center;gap:4px;color:var(--muted);font-size:11px">
+      <span style="width:10px;height:10px;border-radius:50%;background:#22d3ee;display:inline-block;flex-shrink:0"></span>
+      Ateliers collectifs — taille = nb d'ateliers · cliquer une commune pour voir les lieux
+    </span>`;
+  }else{
+    const cmsPresents=cmsFilter?[cmsFilter]:allCmsInData;
+    buildTerrLegend(cmsPresents);
+  }
 
   // Afficher indicateur pendant chargement carte
   const mapEl2=document.getElementById('map-territoire');
