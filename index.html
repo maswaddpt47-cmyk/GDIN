@@ -1714,9 +1714,15 @@ function renderRapport(){
   const actRpt=ACTIONS_DATA?ACTIONS_DATA.filter(r=>r.conum===conum&&(r.cms===cms||r.cms===cmNormRpt)&&r.etat==='Réalisée'&&(!activeYears.size||activeYears.has(r.year))):[];
   const totalOrientations=actRpt.length;
   // % dans les 48h (orientation → prise de contact)
-  const delR2=actRpt.map(r=>r.delai_total).filter(v=>v!=null&&v>=0);
+  let delR2=actRpt.map(r=>r.delai_total).filter(v=>v!=null&&v>=0);
+  // Fallback : si ACTIONS_DATA (import séparé/stocké) ne couvre pas ce conseiller/CMS/période,
+  // on calcule le délai directement depuis les accompagnements filtrés courants.
+  if(!delR2.length){
+    const pdLoc=v=>{if(!v)return null;const d=new Date(v);return isNaN(d)?null:d;};
+    delR2=data.filter(r=>r.etat==='Réalisée'&&r.date_realisation).map(r=>dayDiff(pdLoc(r.date_demande),pdLoc(r.date_realisation))).filter(v=>v!=null&&v>=0);
+  }
   const moyR2=delR2.length?Math.round(delR2.reduce((a,b)=>a+b,0)/delR2.length):null;
-  const hasAct=ACTIONS_DATA&&ACTIONS_DATA.length>0;
+  const hasAct=delR2.length>0;
   document.getElementById('kpi-rpt').innerHTML=`
     <div class="kpi blue"><div class="kpi-label">Accompagnements</div><div class="kpi-value">${data.length}</div><div class="kpi-sub">${pct(data.length,dataConum.length)}% activité CN</div></div>
     <div class="kpi orange"><div class="kpi-label">Orienteurs actifs</div><div class="kpi-value">${oriCount}</div><div class="kpi-sub">TS</div></div>
