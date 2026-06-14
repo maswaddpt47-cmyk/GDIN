@@ -3422,6 +3422,11 @@ function buildAnomalyReport(records, rawLines){
 // ── Helper : résoudre les CSS vars pour Chart.js ──
 function cssVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function legendColor(){return document.body.classList.contains('light-mode')?'#1a2235':'#dde6f5';}
+function applyChartTheme(){
+  const c=legendColor();
+  Chart.defaults.color=c;
+  Chart.defaults.plugins.legend.labels.color=c;
+}
 
 // ════════════════════════════════════════════
 // DIAPO RAPPORT
@@ -4036,12 +4041,14 @@ function toggleTheme(){
   const light=document.body.classList.toggle('light-mode');
   document.getElementById('btn-theme').textContent=light?'🌑':'🌙';
   try{sessionStorage.setItem('gdin_theme',light?'light':'dark');}catch(e){}
+  applyChartTheme();refreshAll();
   setTimeout(()=>{if(window._leafletMap)window._leafletMap.invalidateSize();},50);
 }
 
 // ── BOOT ──
 (function(){
   injectConumCss();
+  applyChartTheme();
   initData();initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();renderGlobal();
   // Restaurer l'onglet actif
   try{
