@@ -5,11 +5,14 @@
 **AVANT toute modification de fichier**, exécuter systématiquement :
 
 ```bash
+git checkout main
 git fetch origin
 git pull origin main --rebase
 git log --oneline -5
 ```
 
+> Toujours travailler sur la branche **`main`** — c'est la branche de référence du projet.
+> Ne jamais committer sur une autre branche sans demande explicite de l'utilisateur.
 > Raison : l'utilisateur modifie régulièrement `index.html` directement sur GitHub entre les sessions. Ne jamais écraser ses changements en travaillant sur une version locale obsolète.
 
 ---
