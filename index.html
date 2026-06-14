@@ -1335,15 +1335,12 @@ function renderEvolution(){
           legend:{
             display:evolModeVal!=='total',
             labels:{color:'#dde6f5',font:{size:9},boxWidth:8,padding:5,
-              generateLabels:(chart)=>{
-                const seen=new Set();
-                return chart.data.datasets
-                  .filter(ds=>ds.data.some(v=>v>0))
-                  .reduce((acc,ds)=>{
-                    const name=ds.label.replace(/ \d{4}$/,'');
-                    if(!seen.has(name)){seen.add(name);acc.push({text:name,fillStyle:ds.backgroundColor,strokeStyle:ds.borderColor,lineWidth:1,hidden:false});}
-                    return acc;
-                  },[]);
+              filter:(item,chartData)=>{
+                const ds=chartData.datasets[item.datasetIndex];
+                if(!ds||!ds.data.some(v=>v>0))return false;
+                const name=ds.label.replace(/ \d{4}$/,'');
+                const firstIdx=chartData.datasets.findIndex(d=>d.label.replace(/ \d{4}$/,'')=== name&&d.data.some(v=>v>0));
+                return firstIdx===item.datasetIndex;
               }
             }
           },
