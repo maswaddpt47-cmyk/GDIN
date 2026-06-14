@@ -2956,8 +2956,15 @@ function renderAteliers(){
     kpiAtl(conumSet.size,'Conseillers','animateurs','var(--orange)')+
     kpiAtl(`<span style="font-size:18px">${topThema}</span>`,'Thématique principale',`${topThemaN} ateliers`,'var(--green)');
 
-  // Évolution mensuelle
-  const months=[...new Set(data.map(r=>r.date_demande.slice(0,7)))].sort();
+  // Évolution mensuelle — axe complet (tous les mois de la plage, y compris ceux à 0)
+  const allMonthsSet=[];
+  if(data.length){
+    const dmin=data.map(r=>r.date_demande.slice(0,7)).sort()[0];
+    const dmax=data.map(r=>r.date_demande.slice(0,7)).sort().reverse()[0];
+    let cur=dmin;
+    while(cur<=dmax){allMonthsSet.push(cur);const[y,m]=cur.split('-').map(Number);const nm=m===12?`${y+1}-01`:`${y}-${String(m+1).padStart(2,'0')}`;cur=nm;}
+  }
+  const months=allMonthsSet;
   destroyChart('ch-atl-evol');
   charts['ch-atl-evol']=new Chart(document.getElementById('ch-atl-evol'),{
     type:'bar',
