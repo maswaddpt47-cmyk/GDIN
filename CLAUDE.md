@@ -1,5 +1,19 @@
 # CLAUDE.md — Projet GDIN · Dashboard Activité Conum · CD47
 
+## Procédure de démarrage obligatoire
+
+**AVANT toute modification de fichier**, exécuter systématiquement :
+
+```bash
+git fetch origin
+git pull origin main --rebase
+git log --oneline -5
+```
+
+> Raison : l'utilisateur modifie régulièrement `index.html` directement sur GitHub entre les sessions. Ne jamais écraser ses changements en travaillant sur une version locale obsolète.
+
+---
+
 ## Contexte du projet
 
 Dashboard d'activité pour les **Conseillers Numériques (Conum)** du **Conseil Départemental du Lot-et-Garonne (CD47)**, dans le cadre du dispositif **GDIN** (Gestion et suivi de l'Inclusion Numérique).
