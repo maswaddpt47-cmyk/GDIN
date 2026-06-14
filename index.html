@@ -1334,7 +1334,7 @@ function renderEvolution(){
         plugins:{
           legend:{
             display:evolModeVal!=='total',
-            labels:{color:'#dde6f5',font:{size:9},boxWidth:8,padding:5}
+            labels:{color:'#dde6f5',font:{size:9},boxWidth:8,padding:5,filter:(item,chartData)=>chartData.datasets[item.datasetIndex].data.some(v=>v>0)}
           },
           tooltip:{
             callbacks:{
