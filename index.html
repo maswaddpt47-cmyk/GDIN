@@ -687,7 +687,7 @@ body.pres-mode .tbl th{font-size:11px}
         <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Importer pour</span>
         <select id="import-conum-filter" style="flex:1;max-width:260px">
           <option value="">— Tous les conseillers —</option>
-          <option value="ASWAD Michel">ASWAD Michel</option>
+          <option value="ASWAD Michel" selected>ASWAD Michel</option>
           <option value="CAPELLE Eva">CAPELLE Eva</option>
           <option value="PINEAU Cynthia">PINEAU Cynthia</option>
           <option value="TUAL Corentin">TUAL Corentin</option>
@@ -1889,10 +1889,12 @@ dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remov
 // Hint dynamique sur le sélecteur CONUM
 const importConumSel=document.getElementById('import-conum-filter');
 if(importConumSel){
-  importConumSel.addEventListener('change',()=>{
+  const _updateConumHint=()=>{
     const hint=document.getElementById('import-conum-hint');
     if(hint)hint.textContent=importConumSel.value?`Seuls les dossiers de ${importConumSel.value} seront importés`:'Tous les conseillers seront importés';
-  });
+  };
+  importConumSel.addEventListener('change',_updateConumHint);
+  _updateConumHint();
 }
 
 // Détection automatique du type de fichier
