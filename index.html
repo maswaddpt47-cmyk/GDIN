@@ -981,6 +981,7 @@ let activeYears=new Set(), ALL_YEARS=[], pendingData=null;
 let DATA=[], dataSource='embedded', importMeta=null;
 
 // EXCEL DATE
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function excelDate(v){if(!v&&v!==0)return null;if(typeof v==='string'){const m=v.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;const m2=v.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);if(m2)return v.trim().slice(0,10);}const n=parseFloat(v);if(isNaN(n)||n<1)return null;const d=new Date((n-25569)*86400*1000);return d.toISOString().slice(0,10);}
 
 // PARSE XLS
@@ -1051,7 +1052,7 @@ function updateAllYears(){
 }
 function updateDateRange(){const dates=DATA.map(r=>r.date_demande).sort();const dmin=dates[0]||'2025-01-01',dmax=dates[dates.length-1]||'2026-12-31';document.getElementById('dFrom').value=dmin;document.getElementById('dTo').value=dmax;}
 function updateSourceBadge(imp,meta){const b=document.getElementById('data-source-badge');if(imp&&meta){b.className='data-source imported';b.textContent=`📂 ${meta.filename} — ${meta.count} enregistrements`;}else{b.className='data-source embedded';b.textContent='données intégrées';}}
-function updateCurrentSourceInfo(){const dot=document.getElementById('cs-dot'),label=document.getElementById('cs-label');if(dataSource==='imported'&&importMeta){dot.style.background='var(--green)';label.innerHTML=`<strong style="color:var(--green)">${importMeta.filename}</strong> — ${importMeta.count} enregistrements · ${importMeta.years.join(', ')} · importé le ${importMeta.date}`;}else{dot.style.background='var(--muted)';label.innerHTML=`<span style="color:var(--muted)">Données intégrées (${EMBEDDED.length} enregistrements, partiel)</span>`;}}
+function updateCurrentSourceInfo(){const dot=document.getElementById('cs-dot'),label=document.getElementById('cs-label');if(dataSource==='imported'&&importMeta){dot.style.background='var(--green)';label.innerHTML=`<strong style="color:var(--green)">${esc(importMeta.filename)}</strong> — ${importMeta.count} enregistrements · ${importMeta.years.join(', ')} · importé le ${importMeta.date}`;}else{dot.style.background='var(--muted)';label.innerHTML=`<span style="color:var(--muted)">Données intégrées (${EMBEDDED.length} enregistrements, partiel)</span>`;}}
 
 // YEAR CHIPS
 function yrLabel(yr){
@@ -2213,7 +2214,7 @@ function refreshAll(){
     window._leafletMap=null;
     window._geoApiLoaded=false;
   }
-  renderGlobal();
+  if(document.getElementById('panel-global').classList.contains('active'))renderGlobal();
   if(document.getElementById('panel-evolution').classList.contains('active')){buildYearChips();renderEvolution();}
   if(document.getElementById('panel-par-cms').classList.contains('active')){initCmsSelect();renderCms();}
   if(document.getElementById('panel-par-conum').classList.contains('active'))renderConum();
@@ -2633,7 +2634,7 @@ function updateActionsUI(filename){
   if(cCur&&conums.includes(cCur))cSel.value=cCur;
   // Badge
   document.getElementById('act-dot').style.background='var(--orange)';
-  document.getElementById('act-label').innerHTML=`<strong style="color:var(--orange)">${filename||'Données chargées'}</strong> — ${ACTIONS_DATA.length} accompagnements · ${years.join(', ')}`;
+  document.getElementById('act-label').innerHTML=`<strong style="color:var(--orange)">${esc(filename||'Données chargées')}</strong> — ${ACTIONS_DATA.length} accompagnements · ${years.join(', ')}`;
   // btn always visible
   // Reset active years so new import always shows all years
   window.actActiveYears=null; window.actYearsInit=false;
