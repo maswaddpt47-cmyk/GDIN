@@ -2,7 +2,7 @@
 
 ## Procédure de démarrage obligatoire
 
-**AVANT toute modification de fichier**, exécuter systématiquement :
+**AVANT toute modification de fichier**, exécuter systématiquement dans l'ordre :
 
 ```bash
 git checkout main
@@ -11,9 +11,30 @@ git pull origin main --rebase
 git log --oneline -5
 ```
 
+**Puis créer un backup daté de `index.html` :**
+
+```bash
+cp index.html index.backup.$(date +%Y%m%d-%H%M).html
+git add index.backup.*.html
+git commit -m "Backup index.html — $(date +%Y-%m-%d)"
+git push origin main
+```
+
 > Toujours travailler sur la branche **`main`** — c'est la branche de référence du projet.
 > Ne jamais committer sur une autre branche sans demande explicite de l'utilisateur.
 > Raison : l'utilisateur modifie régulièrement `index.html` directement sur GitHub entre les sessions. Ne jamais écraser ses changements en travaillant sur une version locale obsolète.
+
+### Versioning — convention de commit
+
+Chaque modification de `index.html` doit faire l'objet d'un commit distinct et descriptif :
+
+```
+feat: ajout filtre par année sur panel territoire
+fix: correction markers Leaflet communes sans coordonnées
+refactor: extraction fonction normCommune au niveau global
+```
+
+Ne jamais regrouper plusieurs changements non liés dans un seul commit.
 
 ---
 
