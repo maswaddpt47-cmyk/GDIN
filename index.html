@@ -1415,7 +1415,7 @@ function renderEvolution(){
         responsive:true,maintainAspectRatio:true,
         interaction:{mode:'index',intersect:false},
         plugins:{
-          legend:{labels:{color:legendColor(),font:{size:9},padding:5,boxWidth:8}},
+          legend:{labels:{color:legendColor(),font:{size:9},padding:5,boxWidth:8,filter:(item,chartData)=>chartData.datasets[item.datasetIndex].data.some(v=>v>0)}},
           tooltip:{callbacks:{
             title:items=>items[0].label,
             label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}`,
