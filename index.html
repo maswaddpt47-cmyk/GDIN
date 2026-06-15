@@ -684,6 +684,15 @@ body.pres-mode .tbl th{font-size:11px}
         </div>
       </div>
 
+      <!-- Export / Import JSON -->
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
+        <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">⚡ Sauvegarde JSON</span>
+        <button class="btn-sm" onclick="exportDataJSON()" title="Exporter les données actuelles en fichier JSON réimportable">⬇ Exporter</button>
+        <input type="file" id="json-file-input" accept=".json" style="display:none" onchange="handleAutoImport(this.files[0])">
+        <button class="btn-sm" onclick="document.getElementById('json-file-input').click()" title="Importer un export JSON GDIN">⬆ Importer JSON</button>
+        <span style="font-size:10px;color:var(--muted);font-style:italic;flex:1">Chargement instantané — évite de re-parser l'Excel</span>
+      </div>
+
       <!-- Filtre CONUM avant import -->
       <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
         <span style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Importer pour</span>
@@ -699,7 +708,7 @@ body.pres-mode .tbl th{font-size:11px}
 
       <!-- Zone de drop unique -->
       <div class="drop-zone g1" id="drop-zone">
-        <input type="file" id="file-input" accept=".xls,.xlsx,.txt,.csv" onchange="handleAutoImport(this.files[0])">
+        <input type="file" id="file-input" accept=".xls,.xlsx,.txt,.csv,.json" onchange="handleAutoImport(this.files[0])">
         <div class="drop-icon">📂</div>
         <div class="drop-label">Glisse n'importe quel fichier ici</div>
         <div class="drop-sub">GDIN (.xls / texte tabulé) ou Etat_Actions (.xlsx) — détection automatique</div>
@@ -1915,6 +1924,20 @@ if(importConumSel){
 async function handleAutoImport(file){
   if(!file)return;
   document.getElementById('import-error').style.display='none';
+  // Fichier JSON — import instantané
+  if(file.name.toLowerCase().endsWith('.json')){
+    const prog=document.getElementById('parse-progress-box'),bar=document.getElementById('parse-bar'),msg=document.getElementById('parse-msg');
+    prog.style.display='block';bar.style.width='20%';msg.textContent=`Lecture de ${esc(file.name)}…`;
+    const r=new FileReader();
+    r.onload=e=>{bar.style.width='70%';msg.textContent='Validation…';setTimeout(()=>{
+      try{const payload=JSON.parse(e.target.result);bar.style.width='100%';
+        setTimeout(()=>{prog.style.display='none';try{importDataJSON(payload,file.name);}catch(err){showImportError(err.message);}},300);
+      }catch(err){prog.style.display='none';showImportError('JSON invalide : '+err.message);}
+    },200);};
+    r.onerror=()=>{prog.style.display='none';showImportError('Impossible de lire le fichier JSON.');};
+    r.readAsText(file,'utf-8');
+    return;
+  }
   const prog=document.getElementById('parse-progress-box');
   const bar=document.getElementById('parse-bar');
   const msg=document.getElementById('parse-msg');
@@ -2190,6 +2213,34 @@ function resetToEmbedded(){
     .filter(r=>r.cms!==null);applyConumAttrib(DATA);deriveActionsFromData();
   dataSource='embedded';importMeta=null;updateSourceBadge(false,null);updateAllYears();updateDateRange();updateCurrentSourceInfo();
   initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
+}
+
+function exportDataJSON(){
+  const payload={version:'1',type:'gdin-data',exported:new Date().toISOString(),
+    source_filename:importMeta?importMeta.filename:'données-intégrées',
+    conum_filter:(document.getElementById('import-conum-filter')||{}).value||null,
+    count:DATA.length,data:DATA};
+  const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`gdin-export-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+function importDataJSON(payload,filename){
+  if(payload.type!=='gdin-data'||!Array.isArray(payload.data))
+    throw new Error('Format non reconnu — ce fichier n\'est pas un export GDIN');
+  const records=payload.data;
+  if(!records.length)throw new Error('Le fichier JSON ne contient aucun enregistrement');
+  DATA=records;applyConumAttrib(DATA);deriveActionsFromData();dataSource='imported';
+  const years=[...new Set(records.map(r=>r.date_demande.slice(0,4)))].sort();
+  importMeta={filename,count:DATA.length,years,date:new Date().toLocaleDateString('fr-FR'),source_filename:payload.source_filename||filename};
+  saveToStorage(DATA,importMeta);
+  updateSourceBadge(true,importMeta);updateAllYears();updateDateRange();updateCurrentSourceInfo();
+  initCmsSelect();initConumSelect();initOriCmsSelect();initRptSelects();refreshAll();
+  const dot=document.getElementById('cs-dot');if(dot)dot.style.background='var(--green)';
+  const label=document.getElementById('cs-label');
+  if(label)label.innerHTML=`<strong style="color:var(--green)">✓ JSON chargé —</strong> ${records.length} enregistrements · ${years.join(', ')}${payload.conum_filter?` · <span style="color:var(--cyan)">${esc(payload.conum_filter)}</span>`:''}`;
 }
 
 // ── PLEIN ÉCRAN CARTE ──
