@@ -1395,13 +1395,14 @@ function renderEvolution(){
   // CMS monthly — line area empilé
   destroyChart('ch-cms-monthly');
   {
-    const top6=CMS_MAIN.slice(0,6);
-    const areaDatasets=top6.map((cms,i)=>({
+    const cmsCounts={};allF.forEach(r=>{if(r.cms)cmsCounts[r.cms]=(cmsCounts[r.cms]||0)+1;});
+    const top6=Object.entries(cmsCounts).sort((a,b)=>b[1]-a[1]).slice(0,6).map(e=>e[0]);
+    const areaDatasets=top6.map((cms)=>({
       label:cms,
       data:mAll.map(k=>allF.filter(r=>r.cms===cms&&r.date_demande.startsWith(k)).length),
-      borderColor:PALETTE[i],
+      borderColor:cmsColor(cms),
       borderWidth:1.5,
-      backgroundColor:PALETTE[i]+'44',
+      backgroundColor:cmsColor(cms)+'44',
       pointRadius:1.5,
       pointHoverRadius:5,
       tension:.4,
