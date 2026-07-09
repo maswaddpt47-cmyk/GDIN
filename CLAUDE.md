@@ -5,24 +5,16 @@
 **AVANT toute modification de fichier**, exécuter systématiquement dans l'ordre :
 
 ```bash
-git checkout main
 git fetch origin
 git pull origin main --rebase
 git log --oneline -5
 ```
 
-**Puis créer un backup daté de `index.html` :**
-
-```bash
-cp index.html index.backup.$(date +%Y%m%d-%H%M).html
-git add index.backup.*.html
-git commit -m "Backup index.html — $(date +%Y-%m-%d)"
-git push origin main
-```
-
 > Toujours travailler sur la branche **`main`** — c'est la branche de référence du projet.
 > Ne jamais committer sur une autre branche sans demande explicite de l'utilisateur.
 > Raison : l'utilisateur modifie régulièrement `index.html` directement sur GitHub entre les sessions. Ne jamais écraser ses changements en travaillant sur une version locale obsolète.
+>
+> **Pas de backup manuel** — les commits git font office de backup. Chaque modification est commitée et pushée avec un message descriptif, ce qui permet de revenir à n'importe quelle version via `git checkout <hash> -- index.html`.
 
 ### Versioning — convention de commit
 
